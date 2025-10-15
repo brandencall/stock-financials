@@ -1,0 +1,12 @@
+data/
+bin/
+notes.txt
+
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
