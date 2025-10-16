@@ -2,6 +2,8 @@
 #include <memory>
 #include <sqlite_modern_cpp.h>
 
-Database::Database(const std::string &dbPath) : db_(std::make_unique<sqlite::database>(dbPath)) {}
+Database::Database(const std::string &dbPath) : db_(std::make_unique<sqlite::database>(dbPath)) {
+    *db_ << "PRAGMA foreign_keys = ON;";
+}
 
 sqlite::database &Database::get() { return *db_; }

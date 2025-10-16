@@ -1,6 +1,4 @@
 #include "repositories/company_repository.h"
-#include <string>
-#include <utility>
 
 CompanyRepository::CompanyRepository(Database &db) : db_(db) {}
 

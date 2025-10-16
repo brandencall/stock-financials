@@ -9,9 +9,5 @@ struct FinancialFact {
     std::string endDate;
     double value;
     std::string unit;
-    std::string source_tag;
+    std::string sourceTag;
 };
-
-inline void to_json(nlohmann::json &j, const FinancialFact &f) {}
-
-inline void from_json(const nlohmann::json &j, FinancialFact &f) {}

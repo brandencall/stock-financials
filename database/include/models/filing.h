@@ -11,7 +11,3 @@ struct Filing {
     std::string fp;
     std::string filed_date;
 };
-
-inline void to_json(nlohmann::json &j, const Filing &f) {}
-
-inline void from_json(const nlohmann::json &j, Filing &f) {}
