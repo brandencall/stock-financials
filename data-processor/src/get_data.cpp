@@ -1,11 +1,15 @@
 #include "get_data.h"
-#include "models/company.h"
-#include <vector>
 
-size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *output) {
+size_t WriteCallbackJson(void *contents, size_t size, size_t nmemb, std::string *output) {
     size_t totalSize = size * nmemb;
     output->append((char *)contents, totalSize);
     return totalSize;
+}
+
+size_t WriteCallbackFile(void *ptr, size_t size, size_t nmemb, void *userdata) {
+    std::ofstream *file = static_cast<std::ofstream *>(userdata);
+    file->write(static_cast<char *>(ptr), size * nmemb);
+    return size * nmemb;
 }
 
 std::vector<Company> get_sec_company_tickers() {
@@ -16,7 +20,7 @@ std::vector<Company> get_sec_company_tickers() {
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "stock-data (brandencall@live.com)");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackJson);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
         CURLcode res = curl_easy_perform(curl);
@@ -34,4 +38,46 @@ std::vector<Company> get_sec_company_tickers() {
         companies.push_back(value.get<Company>());
     }
     return companies;
+}
+
+void get_sec_bulk_data(std::filesystem::path path) {
+    const char *url = "https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip";
+    const char *outputFile = path.c_str();
+
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        std::cerr << "Failed to initialize libcurl\n";
+    }
+
+    std::ofstream file(outputFile, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open output file for writing\n";
+        curl_easy_cleanup(curl);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackFile);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "stock-data (brandencall@live.com)");
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    //10 min timeout for the download
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L); 
+
+    std::cout << "Downloading " << url << " ..." << std::endl;
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        std::cerr << "Download failed: " << curl_easy_strerror(res) << std::endl;
+    } else {
+        std::cout << "Download complete: " << outputFile << std::endl;
+
+        // (optional) print size
+        double size;
+        if (curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD_T, &size) == CURLE_OK)
+            std::cout << "Downloaded " << (size / (1024 * 1024)) << " MB\n";
+    }
+
+    file.close();
+    curl_easy_cleanup(curl);
 }
