@@ -1,5 +1,4 @@
 #pragma once
-#include "get_data.h"
 #include "models/company.h"
 #include <cstddef>
 #include <curl/curl.h>

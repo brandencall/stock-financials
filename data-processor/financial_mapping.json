@@ -1,0 +1,19 @@
+{
+    "Revenue":
+    [
+        "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "RevenueFromContractWithCustomerIncludingAssessedTax",
+        "Revenues"
+    ],
+    "Gross Profit": ["GrossProfit"],
+    "Operating Income": ["OperatingIncomeLoss"],
+    "Net Income": ["NetIncomeLoss"],
+    "Earnings Per Share Basic": ["EarningsPerShareBasic"],
+    "Earnings Per Share Diluted": ["EarningsPerShareDiluted"],
+    "Cash And Cash Equivalents": ["CashAndCashEquivalentsAtCarryingValue"],
+    "Overall Debt": ["LongTermDebt"],
+    "Current Debt": ["LongTermDebtCurrent"],
+    "Long Term Debt": ["LongTermDebtNoncurrent"],
+    "Stockholders' Equity": ["StockholdersEquity"],
+    "Shares": ["EntityCommonStockSharesOutstanding"]
+}

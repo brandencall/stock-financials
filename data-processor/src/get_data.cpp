@@ -61,8 +61,8 @@ void get_sec_bulk_data(std::filesystem::path path) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "stock-data (brandencall@live.com)");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-    //10 min timeout for the download
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L); 
+    // 10 min timeout for the download
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L);
 
     std::cout << "Downloading " << url << " ..." << std::endl;
     CURLcode res = curl_easy_perform(curl);

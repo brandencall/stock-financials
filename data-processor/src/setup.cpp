@@ -35,3 +35,15 @@ std::filesystem::path setup_company_fact_data() {
     }
     return extract_dir;
 }
+
+std::unordered_map<std::string, std::string> buildTagMap() {
+    std::ifstream ifs("financial_mapping.json");
+    json data = json::parse(ifs);
+    std::unordered_map<std::string, std::string> result;
+    for (auto &[canonical, aliases] : data.items()) {
+        for (const auto &alias : aliases) {
+            result[alias.get<std::string>()] = canonical;
+        }
+    }
+    return result;
+}

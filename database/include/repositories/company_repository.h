@@ -9,6 +9,7 @@ public:
     void createTable();
     void upsert(const Company& company);
     std::vector<Company> getAll();
+    Company getCompanyByCIK(std::string cik);
 
     private:
     Database& db_;

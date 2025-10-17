@@ -29,3 +29,12 @@ std::vector<Company> CompanyRepository::getAll() {
         };
     return result;
 }
+
+Company CompanyRepository::getCompanyByCIK(std::string cik) {
+    Company result;
+    db_.get() << "SELECT cik, ticker, title FROM companies WHERE cik = (?)" << cik >>
+        [&](std::string cik, std::string ticker, std::string title) {
+            result = Company{std::move(cik), std::move(ticker), std::move(title)};
+        };
+    return result;
+}
