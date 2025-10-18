@@ -2,6 +2,7 @@
 #include <string>
 
 struct CompanyRecord {
+    int filingId;
     std::string cik;
     std::string realTag;
     std::string friendlyTag;

@@ -1,14 +1,16 @@
 #pragma once
-#include "../models/financial_fact.h"
 #include "../database.h"
+#include "../models/company_record.h"
+#include "../models/financial_fact.h"
 #include <vector>
 
 class FinancialFactRepository {
-public:
-    explicit FinancialFactRepository(Database& db);
+  public:
+    explicit FinancialFactRepository(Database &db);
     void createTable();
-    void insert(const FinancialFact& financialFact);
+    void insert(const CompanyRecord &record);
+    void insert(const FinancialFact &financialFact);
 
-    private:
-    Database& db_;
+  private:
+    Database &db_;
 };

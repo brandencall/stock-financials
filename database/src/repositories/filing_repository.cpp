@@ -13,21 +13,37 @@ void FilingRepository::createTable() {
           fp TEXT,
           filed_date TEXT,
           FOREIGN KEY (cik) REFERENCES companies(cik)
-        );
+        )
     )";
 }
 
-void FilingRepository::insert(const Filing &filing) {
-    db_.get() << R"(
-        INSERT INTO filings (filingId, accession, cik, form, fy, fp, filed_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+int FilingRepository::insert(const CompanyRecord &record) {
+    auto &db = db_.get();
+    db << R"(
+        INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+    )" << record.accession
+       << record.cik << record.form << record.fy << record.fp << record.filed;
+    int filingId = 0;
+    db << "SELECT last_insert_rowid()" >> filingId;
+    return filingId;
+}
+
+int FilingRepository::insert(const Filing &filing) {
+    auto &db = db_.get();
+    db << R"(
+        INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
+        VALUES (?, ?, ?, ?, ?, ?)
     )" << filing.filingId
-              << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filed_date;
+       << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filed_date;
+    int filingId = 0;
+    db << "SELECT last_insert_rowid()" >> filingId;
+    return filingId;
 }
 
 std::optional<int> FilingRepository::getFileIdByAccession(std::string accession) {
     std::optional<int> result;
-    db_.get() << "SELECT filingId FROM filings WHERE accession = (?);" << accession >>
+    db_.get() << "SELECT filingId FROM filings WHERE accession = (?)" << accession >>
         [&](int filingId) { result = filingId; };
     return result;
 }

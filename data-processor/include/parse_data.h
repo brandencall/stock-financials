@@ -1,9 +1,15 @@
 #pragma once
 #include "models/company_record.h"
+#include "models/filing.h"
+#include "models/financial_fact.h"
+#include "repositories/filing_repository.h"
+#include "repositories/financial_fact_repository.h"
 #include "services/company_record_service.h"
 #include <fstream>
 #include <iostream>
+#include <nlohmann/detail/value_t.hpp>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -11,13 +17,16 @@ using json = nlohmann::json;
 
 class DataParser {
   public:
-    explicit DataParser(CompanyRecordService &crService, std::unordered_map<std::string, std::string> tagMap);
+    explicit DataParser(std::unordered_map<std::string, std::string> tagMap, FilingRepository &filingRepo,
+                        FinancialFactRepository &factRepo);
     void parseAndInsertData(std::filesystem::path path);
 
   private:
-    CompanyRecordService crService;
     std::unordered_map<std::string, std::string> tagMap;
-    void parseFinancialFacts(const std::string &cik, const std::string &tag,
-                                                   const std::string &friedlyTag, const json &tagData);
+    FilingRepository filingRepo;
+    FinancialFactRepository factRepo;
+    void parseAndInsertTagData(CompanyRecord &record, const json &tagData,
+                               std::unordered_map<std::string, int> &filing_map);
     void parseCompanyRecord(const json &entry, CompanyRecord &record);
+    void handleNonCachedAccession(CompanyRecord &record, std::unordered_map<std::string, int> &filing_map);
 };

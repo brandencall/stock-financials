@@ -1,4 +1,5 @@
 #include "setup.h"
+#include <iostream>
 
 Database setup_db() {
     std::filesystem::path newDir = "../data";
@@ -11,6 +12,17 @@ CompanyRepository setup_company_repo(Database &db) {
     CompanyRepository companies(db);
     companies.createTable();
     return companies;
+}
+FilingRepository setup_filing_repo(Database &db) {
+    FilingRepository filing(db);
+    filing.createTable();
+    return filing;
+}
+
+FinancialFactRepository setup_fact_repo(Database &db) {
+    FinancialFactRepository fact(db);
+    fact.createTable();
+    return fact;
 }
 
 std::filesystem::path setup_company_fact_data() {

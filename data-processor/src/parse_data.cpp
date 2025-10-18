@@ -1,13 +1,14 @@
 #include "parse_data.h"
-#include "models/company_record.h"
 
-DataParser::DataParser(CompanyRecordService &crService, std::unordered_map<std::string, std::string> tagMap)
-    : crService(crService), tagMap(tagMap) {}
+DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap, FilingRepository &filingRepo,
+                       FinancialFactRepository &factRepo)
+    : tagMap(tagMap), filingRepo(filingRepo), factRepo(factRepo) {}
 
 void DataParser::parseAndInsertData(std::filesystem::path path) {
     std::ifstream file(path);
     json data = json::parse(file);
     std::string cik = std::to_string(data["cik"].get<long long>());
+    std::unordered_map<std::string, int> filing_map;
 
     for (const auto &[taxonomy, tags] : data["facts"].items()) {
         std::cout << "Processing taxonomy: " << taxonomy << '\n';
@@ -17,30 +18,36 @@ void DataParser::parseAndInsertData(std::filesystem::path path) {
 
             if (tagMap.find(tag) != tagMap.end()) {
                 std::cout << "Tag: " << tag << '\n';
-                parseFinancialFacts(cik, tag, tagMap[tag], tagData["units"]);
+                CompanyRecord record;
+                record.cik = cik;
+                record.realTag = tag;
+                record.friendlyTag = tagMap[tag];
+                parseAndInsertTagData(record, tagData["units"], filing_map);
             }
         }
     }
 }
 
-void printFact(CompanyRecord record) {
+void printFact(const CompanyRecord &record) {
     std::cout << "RealTag: " << record.realTag << '\n';
     std::cout << record.friendlyTag << " (" << record.unit << "): " << record.accession << " " << record.val << " FY"
               << record.fy << " " << record.fp << " " << record.start << " - " << record.end << " " << record.filed
               << " " << record.form << '\n';
 }
 
-void DataParser::parseFinancialFacts(const std::string &cik, const std::string &tag, const std::string &friedlyTag,
-                                     const json &tagData) {
+void DataParser::parseAndInsertTagData(CompanyRecord &record, const json &tagData,
+                                       std::unordered_map<std::string, int> &filing_map) {
     for (const auto &[unit, entries] : tagData.items()) {
-        CompanyRecord record;
-        record.cik = cik;
-        record.realTag = tag;
-        record.friendlyTag = friedlyTag;
         record.unit = unit;
         for (const auto &entry : entries) {
             parseCompanyRecord(entry, record);
-            crService.insertCompanyRecord(record);
+            printFact(record);
+            if (filing_map.find(record.accession) != filing_map.end()) {
+                record.filingId = filing_map[record.accession];
+                factRepo.insert(record);
+            } else {
+                handleNonCachedAccession(record, filing_map);
+            }
         }
     }
 }
@@ -68,4 +75,18 @@ void DataParser::parseCompanyRecord(const json &entry, CompanyRecord &record) {
 
     if (entry.contains("filed") && !entry["filed"].is_null())
         record.filed = entry["filed"].get<std::string>();
+}
+
+void DataParser::handleNonCachedAccession(CompanyRecord &record, std::unordered_map<std::string, int> &filing_map) {
+    std::optional<int> filingId = filingRepo.getFileIdByAccession(record.accession);
+    if (filingId != std::nullopt) {
+        filing_map[record.accession] = filingId.value();
+        record.filingId = filingId.value();
+        factRepo.insert(record);
+    } else {
+        int newFilingId = filingRepo.insert(record);
+        filing_map[record.accession] = newFilingId;
+        record.filingId = newFilingId;
+        factRepo.insert(record);
+    }
 }
