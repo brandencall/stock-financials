@@ -2,6 +2,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+namespace db::model {
+
 struct Filing {
     int filingId;
     std::string accession;
@@ -11,3 +13,5 @@ struct Filing {
     std::string fp;
     std::string filed_date;
 };
+
+} // namespace db::model

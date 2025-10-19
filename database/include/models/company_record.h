@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+namespace db::model {
+
 struct CompanyRecord {
     int filingId;
     std::string cik;
@@ -16,3 +18,5 @@ struct CompanyRecord {
     std::string form;
     std::string filed;
 };
+
+} // namespace db::model

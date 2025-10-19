@@ -1,18 +1,22 @@
 #pragma once
 #include "../database.h"
-#include "../models/filing.h"
 #include "../models/company_record.h"
+#include "../models/filing.h"
 #include <optional>
 #include <vector>
 
+namespace db::repository {
+
 class FilingRepository {
   public:
-    explicit FilingRepository(Database &db);
+    explicit FilingRepository(db::Database &db);
     void createTable();
-    int insert(const CompanyRecord &record);
-    int insert(const Filing &filing);
+    int insert(const db::model::CompanyRecord &record);
+    int insert(const db::model::Filing &filing);
     std::optional<int> getFileIdByAccession(std::string accession);
 
   private:
-    Database &db_;
+    db::Database &db_;
 };
+
+} // namespace db::repository

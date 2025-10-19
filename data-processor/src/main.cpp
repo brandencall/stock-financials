@@ -1,6 +1,7 @@
+#include "data_parser.h"
 #include "get_data.h"
 #include "models/company.h"
-#include "parse_data.h"
+#include "repositories/company_repository.h"
 #include "repositories/filing_repository.h"
 #include "repositories/financial_fact_repository.h"
 #include "setup.h"
@@ -9,10 +10,10 @@
 #include <vector>
 
 int main() {
-    Database db = setup_db();
-    CompanyRepository companyRepo = setup_company_repo(db);
-    FilingRepository filingRepo = setup_filing_repo(db);
-    FinancialFactRepository factRepo = setup_fact_repo(db);
+    db::Database db = setup_db();
+    db::repository::CompanyRepository companyRepo = setup_company_repo(db);
+    db::repository::FilingRepository filingRepo = setup_filing_repo(db);
+    db::repository::FinancialFactRepository factRepo = setup_fact_repo(db);
     // std::filesystem::path companyFactsPath = setup_company_fact_data();
     // if (companyFactsPath.empty())
     //     return 1;

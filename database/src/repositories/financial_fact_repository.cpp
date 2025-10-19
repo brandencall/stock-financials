@@ -1,6 +1,8 @@
 #include "repositories/financial_fact_repository.h"
 #include "models/company_record.h"
 
+namespace db::repository {
+
 FinancialFactRepository::FinancialFactRepository(Database &db) : db_(db) {}
 
 void FinancialFactRepository::createTable() {
@@ -19,7 +21,7 @@ void FinancialFactRepository::createTable() {
     )";
 }
 
-void FinancialFactRepository::insert(const CompanyRecord &record) {
+void FinancialFactRepository::insert(const db::model::CompanyRecord &record) {
     db_.get() << R"(
         INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -27,10 +29,12 @@ void FinancialFactRepository::insert(const CompanyRecord &record) {
               << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
 }
 
-void FinancialFactRepository::insert(const FinancialFact &fact) {
+void FinancialFactRepository::insert(const db::model::FinancialFact &fact) {
     db_.get() << R"(
         INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     )" << fact.filingId
               << fact.tag << fact.startDate << fact.endDate << fact.value << fact.unit << fact.sourceTag;
 }
+
+} // namespace db::repository

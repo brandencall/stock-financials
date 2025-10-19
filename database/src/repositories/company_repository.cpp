@@ -1,5 +1,7 @@
 #include "repositories/company_repository.h"
 
+namespace db::repository {
+
 CompanyRepository::CompanyRepository(Database &db) : db_(db) {}
 
 void CompanyRepository::createTable() {
@@ -9,32 +11,33 @@ void CompanyRepository::createTable() {
                  "title TEXT);";
 }
 
-void CompanyRepository::upsert(const Company &company) {
+void CompanyRepository::upsert(const db::model::Company &company) {
     db_.get() << R"(
         INSERT INTO companies (cik, ticker, title)
         VALUES (?, ?, ?)
         ON CONFLICT(cik) DO UPDATE SET
-            ticker = excluded.ticker,
-            title = excluded.title
+        ticker = excluded.ticker,
+        title = excluded.title
         WHERE ticker != excluded.ticker OR title != excluded.title
     )" << company.cik
               << company.ticker << company.title;
 }
 
-std::vector<Company> CompanyRepository::getAll() {
-    std::vector<Company> result;
+std::vector<db::model::Company> CompanyRepository::getAll() {
+    std::vector<db::model::Company> result;
     db_.get() << "SELECT cik, ticker, title FROM companies" >>
         [&](std::string cik, std::string ticker, std::string title) {
-            result.push_back(Company{std::move(cik), std::move(ticker), std::move(title)});
+            result.push_back(db::model::Company{std::move(cik), std::move(ticker), std::move(title)});
         };
     return result;
 }
 
-Company CompanyRepository::getCompanyByCIK(std::string cik) {
-    Company result;
+db::model::Company CompanyRepository::getCompanyByCIK(std::string cik) {
+    db::model::Company result;
     db_.get() << "SELECT cik, ticker, title FROM companies WHERE cik = (?)" << cik >>
         [&](std::string cik, std::string ticker, std::string title) {
-            result = Company{std::move(cik), std::move(ticker), std::move(title)};
+            result = db::model::Company{std::move(cik), std::move(ticker), std::move(title)};
         };
     return result;
 }
+} // namespace db::repository

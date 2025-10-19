@@ -11,5 +11,5 @@
 
 using json = nlohmann::json;
 
-std::vector<Company> get_sec_company_tickers();
+std::vector<db::model::Company> get_sec_company_tickers();
 void get_sec_bulk_data(std::filesystem::path path);

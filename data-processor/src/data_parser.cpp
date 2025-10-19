@@ -1,7 +1,7 @@
-#include "parse_data.h"
+#include "data_parser.h"
 
-DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap, FilingRepository &filingRepo,
-                       FinancialFactRepository &factRepo)
+DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap, db::repository::FilingRepository &filingRepo,
+                       db::repository::FinancialFactRepository &factRepo)
     : tagMap(tagMap), filingRepo(filingRepo), factRepo(factRepo) {}
 
 void DataParser::parseAndInsertData(std::filesystem::path path) {
@@ -18,7 +18,7 @@ void DataParser::parseAndInsertData(std::filesystem::path path) {
 
             if (tagMap.find(tag) != tagMap.end()) {
                 std::cout << "Tag: " << tag << '\n';
-                CompanyRecord record;
+                db::model::CompanyRecord record;
                 record.cik = cik;
                 record.realTag = tag;
                 record.friendlyTag = tagMap[tag];
@@ -28,14 +28,14 @@ void DataParser::parseAndInsertData(std::filesystem::path path) {
     }
 }
 
-void printFact(const CompanyRecord &record) {
+void printFact(const db::model::CompanyRecord &record) {
     std::cout << "RealTag: " << record.realTag << '\n';
     std::cout << record.friendlyTag << " (" << record.unit << "): " << record.accession << " " << record.val << " FY"
               << record.fy << " " << record.fp << " " << record.start << " - " << record.end << " " << record.filed
               << " " << record.form << '\n';
 }
 
-void DataParser::parseAndInsertTagData(CompanyRecord &record, const json &tagData,
+void DataParser::parseAndInsertTagData(db::model::CompanyRecord &record, const json &tagData,
                                        std::unordered_map<std::string, int> &filing_map) {
     for (const auto &[unit, entries] : tagData.items()) {
         record.unit = unit;
@@ -52,7 +52,7 @@ void DataParser::parseAndInsertTagData(CompanyRecord &record, const json &tagDat
     }
 }
 
-void DataParser::parseCompanyRecord(const json &entry, CompanyRecord &record) {
+void DataParser::parseCompanyRecord(const json &entry, db::model::CompanyRecord &record) {
     record.start = entry.value("start", "");
 
     if (entry.contains("accn") && !entry["accn"].is_null())
@@ -77,7 +77,7 @@ void DataParser::parseCompanyRecord(const json &entry, CompanyRecord &record) {
         record.filed = entry["filed"].get<std::string>();
 }
 
-void DataParser::handleNonCachedAccession(CompanyRecord &record, std::unordered_map<std::string, int> &filing_map) {
+void DataParser::handleNonCachedAccession(db::model::CompanyRecord &record, std::unordered_map<std::string, int> &filing_map) {
     std::optional<int> filingId = filingRepo.getFileIdByAccession(record.accession);
     if (filingId != std::nullopt) {
         filing_map[record.accession] = filingId.value();

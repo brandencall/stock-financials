@@ -1,5 +1,7 @@
 #include "repositories/filing_repository.h"
 
+namespace db::repository {
+
 FilingRepository::FilingRepository(Database &db) : db_(db) {}
 
 void FilingRepository::createTable() {
@@ -17,7 +19,7 @@ void FilingRepository::createTable() {
     )";
 }
 
-int FilingRepository::insert(const CompanyRecord &record) {
+int FilingRepository::insert(const db::model::CompanyRecord &record) {
     auto &db = db_.get();
     db << R"(
         INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
@@ -29,7 +31,7 @@ int FilingRepository::insert(const CompanyRecord &record) {
     return filingId;
 }
 
-int FilingRepository::insert(const Filing &filing) {
+int FilingRepository::insert(const db::model::Filing &filing) {
     auto &db = db_.get();
     db << R"(
         INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
@@ -47,3 +49,5 @@ std::optional<int> FilingRepository::getFileIdByAccession(std::string accession)
         [&](int filingId) { result = filingId; };
     return result;
 }
+
+} // namespace db::repository

@@ -12,9 +12,9 @@
 
 using json = nlohmann::json;
 
-Database setup_db();
-CompanyRepository setup_company_repo(Database &db);
-FilingRepository setup_filing_repo(Database &db);
-FinancialFactRepository setup_fact_repo(Database &db);
+db::Database setup_db();
+db::repository::CompanyRepository setup_company_repo(db::Database &db);
+db::repository::FilingRepository setup_filing_repo(db::Database &db);
+db::repository::FinancialFactRepository setup_fact_repo(db::Database &db);
 std::filesystem::path setup_company_fact_data();
 std::unordered_map<std::string, std::string> buildTagMap();

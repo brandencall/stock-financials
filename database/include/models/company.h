@@ -2,6 +2,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+namespace db::model {
+
 struct Company {
     std::string cik;
     std::string ticker;
@@ -17,3 +19,5 @@ inline void from_json(const nlohmann::json &j, Company &c) {
     j.at("ticker").get_to(c.ticker);
     j.at("title").get_to(c.title);
 }
+
+} // namespace db::model

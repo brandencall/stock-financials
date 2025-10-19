@@ -4,6 +4,8 @@
 #include <sqlite_modern_cpp.h>
 #include <string>
 
+namespace db {
+
 class Database {
   public:
     explicit Database(const std::string &dbPath);
@@ -12,3 +14,5 @@ class Database {
   private:
     std::unique_ptr<sqlite::database> db_;
 };
+
+} // namespace db

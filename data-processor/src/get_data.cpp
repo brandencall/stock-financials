@@ -12,7 +12,7 @@ size_t WriteCallbackFile(void *ptr, size_t size, size_t nmemb, void *userdata) {
     return size * nmemb;
 }
 
-std::vector<Company> get_sec_company_tickers() {
+std::vector<db::model::Company> get_sec_company_tickers() {
     const std::string url = "https://www.sec.gov/files/company_tickers.json";
     std::string response;
 
@@ -33,9 +33,9 @@ std::vector<Company> get_sec_company_tickers() {
 
     // Parse JSON
     auto data = json::parse(response);
-    std::vector<Company> companies;
+    std::vector<db::model::Company> companies;
     for (auto &[key, value] : data.items()) {
-        companies.push_back(value.get<Company>());
+        companies.push_back(value.get<db::model::Company>());
     }
     return companies;
 }

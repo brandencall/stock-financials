@@ -1,16 +1,20 @@
 #pragma once
-#include "../models/company.h"
 #include "../database.h"
+#include "../models/company.h"
 #include <vector>
 
-class CompanyRepository {
-public:
-    explicit CompanyRepository(Database& db);
-    void createTable();
-    void upsert(const Company& company);
-    std::vector<Company> getAll();
-    Company getCompanyByCIK(std::string cik);
+namespace db::repository {
 
-    private:
-    Database& db_;
+class CompanyRepository {
+  public:
+    explicit CompanyRepository(db::Database &db);
+    void createTable();
+    void upsert(const db::model::Company &company);
+    std::vector<db::model::Company> getAll();
+    db::model::Company getCompanyByCIK(std::string cik);
+
+  private:
+    db::Database &db_;
 };
+
+} // namespace db::repository

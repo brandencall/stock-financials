@@ -4,13 +4,17 @@
 #include "../models/financial_fact.h"
 #include <vector>
 
+namespace db::repository {
+
 class FinancialFactRepository {
   public:
-    explicit FinancialFactRepository(Database &db);
+    explicit FinancialFactRepository(db::Database &db);
     void createTable();
-    void insert(const CompanyRecord &record);
-    void insert(const FinancialFact &financialFact);
+    void insert(const db::model::CompanyRecord &record);
+    void insert(const db::model::FinancialFact &financialFact);
 
   private:
-    Database &db_;
+    db::Database &db_;
 };
+
+} // namespace db::repository

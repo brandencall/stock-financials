@@ -2,6 +2,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+namespace db::model {
+
 struct FinancialFact {
     int filingId;
     std::string tag;
@@ -11,3 +13,5 @@ struct FinancialFact {
     std::string unit;
     std::string sourceTag;
 };
+
+} // namespace db::model

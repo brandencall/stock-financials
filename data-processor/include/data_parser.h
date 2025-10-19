@@ -16,16 +16,17 @@ using json = nlohmann::json;
 
 class DataParser {
   public:
-    explicit DataParser(std::unordered_map<std::string, std::string> tagMap, FilingRepository &filingRepo,
-                        FinancialFactRepository &factRepo);
+    explicit DataParser(std::unordered_map<std::string, std::string> tagMap,
+                        db::repository::FilingRepository &filingRepo,
+                        db::repository::FinancialFactRepository &factRepo);
     void parseAndInsertData(std::filesystem::path path);
 
   private:
     std::unordered_map<std::string, std::string> tagMap;
-    FilingRepository filingRepo;
-    FinancialFactRepository factRepo;
-    void parseAndInsertTagData(CompanyRecord &record, const json &tagData,
+    db::repository::FilingRepository filingRepo;
+    db::repository::FinancialFactRepository factRepo;
+    void parseAndInsertTagData(db::model::CompanyRecord &record, const json &tagData,
                                std::unordered_map<std::string, int> &filing_map);
-    void parseCompanyRecord(const json &entry, CompanyRecord &record);
-    void handleNonCachedAccession(CompanyRecord &record, std::unordered_map<std::string, int> &filing_map);
+    void parseCompanyRecord(const json &entry, db::model::CompanyRecord &record);
+    void handleNonCachedAccession(db::model::CompanyRecord &record, std::unordered_map<std::string, int> &filing_map);
 };

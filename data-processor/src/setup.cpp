@@ -1,26 +1,26 @@
 #include "setup.h"
 #include <iostream>
 
-Database setup_db() {
+db::Database setup_db() {
     std::filesystem::path newDir = "../data";
     std::filesystem::create_directories(newDir);
     std::filesystem::path path = std::filesystem::absolute(newDir) / "stock_data.db";
-    return Database(path);
+    return db::Database(path);
 }
 
-CompanyRepository setup_company_repo(Database &db) {
-    CompanyRepository companies(db);
+db::repository::CompanyRepository setup_company_repo(db::Database &db) {
+    db::repository::CompanyRepository companies(db);
     companies.createTable();
     return companies;
 }
-FilingRepository setup_filing_repo(Database &db) {
-    FilingRepository filing(db);
+db::repository::FilingRepository setup_filing_repo(db::Database &db) {
+    db::repository::FilingRepository filing(db);
     filing.createTable();
     return filing;
 }
 
-FinancialFactRepository setup_fact_repo(Database &db) {
-    FinancialFactRepository fact(db);
+db::repository::FinancialFactRepository setup_fact_repo(db::Database &db) {
+    db::repository::FinancialFactRepository fact(db);
     fact.createTable();
     return fact;
 }
