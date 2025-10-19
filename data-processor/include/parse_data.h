@@ -4,7 +4,6 @@
 #include "models/financial_fact.h"
 #include "repositories/filing_repository.h"
 #include "repositories/financial_fact_repository.h"
-#include "services/company_record_service.h"
 #include <fstream>
 #include <iostream>
 #include <nlohmann/detail/value_t.hpp>

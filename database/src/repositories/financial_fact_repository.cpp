@@ -5,7 +5,7 @@ FinancialFactRepository::FinancialFactRepository(Database &db) : db_(db) {}
 
 void FinancialFactRepository::createTable() {
     db_.get() << R"(
-        CREATE TABLE financial_facts (
+        CREATE TABLE IF NOT EXISTS financial_facts (
           filingId INTEGER NOT NULL,
           tag TEXT NOT NULL,
           start_date TEXT,

@@ -4,7 +4,7 @@ FilingRepository::FilingRepository(Database &db) : db_(db) {}
 
 void FilingRepository::createTable() {
     db_.get() << R"(
-        CREATE TABLE filings (
+        CREATE TABLE IF NOT EXISTS filings (
           filingId INTEGER PRIMARY KEY AUTOINCREMENT,
           accession TEXT UNIQUE NOT NULL,
           cik TEXT NOT NULL,

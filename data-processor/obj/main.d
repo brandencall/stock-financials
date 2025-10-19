@@ -6,9 +6,7 @@ obj/main.o: src/main.cpp include/get_data.h \
  ../database/include/repositories/filing_repository.h \
  ../database/include/repositories/../database.h \
  ../database/include/repositories/financial_fact_repository.h \
- ../database/include/services/company_record_service.h \
- ../database/include/services/../repositories/company_repository.h \
- include/setup.h
+ include/setup.h ../database/include/repositories/company_repository.h
 include/get_data.h:
 ../database/include/models/company.h:
 include/parse_data.h:
@@ -18,6 +16,5 @@ include/parse_data.h:
 ../database/include/repositories/filing_repository.h:
 ../database/include/repositories/../database.h:
 ../database/include/repositories/financial_fact_repository.h:
-../database/include/services/company_record_service.h:
-../database/include/services/../repositories/company_repository.h:
 include/setup.h:
+../database/include/repositories/company_repository.h:

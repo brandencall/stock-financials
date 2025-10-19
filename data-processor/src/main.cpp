@@ -3,7 +3,6 @@
 #include "parse_data.h"
 #include "repositories/filing_repository.h"
 #include "repositories/financial_fact_repository.h"
-#include "services/company_record_service.h"
 #include "setup.h"
 #include <filesystem>
 #include <iostream>
@@ -29,7 +28,6 @@ int main() {
 
     DataParser parser(tagMap, filingRepo, factRepo);
     parser.parseAndInsertData(tmp);
-    // parseAndInsertData(tmp, tagMap);
 
     return 0;
 }
