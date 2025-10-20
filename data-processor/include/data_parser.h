@@ -25,6 +25,8 @@ class DataParser {
     std::unordered_map<std::string, std::string> tagMap;
     db::repository::FilingRepository filingRepo;
     db::repository::FinancialFactRepository factRepo;
+
+    std::string getCIK(const json &cikData);
     void parseAndInsertTagData(db::model::CompanyRecord &record, const json &tagData,
                                std::unordered_map<std::string, int> &filing_map);
     void parseCompanyRecord(const json &entry, db::model::CompanyRecord &record);
