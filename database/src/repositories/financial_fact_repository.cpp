@@ -15,18 +15,28 @@ void FinancialFactRepository::createTable() {
           value REAL,
           unit TEXT,
           source_tag TEXT,
-          PRIMARY KEY (filingId, tag, start_date, end_date),
+          PRIMARY KEY (filingId, source_tag, start_date, end_date, unit),
           FOREIGN KEY (filingId) REFERENCES filings(filingId)
         )
     )";
 }
 
 void FinancialFactRepository::insert(const db::model::CompanyRecord &record) {
-    db_.get() << R"(
-        INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    )" << record.filingId
-              << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
+    try {
+        db_.get() << R"(
+            INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        )" << record.filingId
+                  << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
+    } catch (const sqlite::errors::constraint_primarykey &e) {
+        std::cerr << "Primary key constraint failed on 'FinancialFact' table.\n";
+        std::cerr << "Filing Id: " << record.filingId << '\n';
+        std::cerr << "Source Tag: " << record.realTag << '\n';
+        std::cerr << "Start Date: " << record.start << '\n';
+        std::cerr << "End Date: " << record.end << '\n';
+        std::cerr << "Error: " << e.what() << std::endl;
+        throw;
+    }
 }
 
 void FinancialFactRepository::insert(const db::model::FinancialFact &fact) {

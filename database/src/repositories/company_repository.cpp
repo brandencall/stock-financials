@@ -1,4 +1,5 @@
 #include "repositories/company_repository.h"
+#include <optional>
 
 namespace db::repository {
 
@@ -32,8 +33,8 @@ std::vector<db::model::Company> CompanyRepository::getAll() {
     return result;
 }
 
-db::model::Company CompanyRepository::getCompanyByCIK(std::string cik) {
-    db::model::Company result;
+std::optional<db::model::Company> CompanyRepository::getCompanyByCIK(const std::string &cik) {
+    std::optional<db::model::Company> result = std::nullopt;
     db_.get() << "SELECT cik, ticker, title FROM companies WHERE cik = (?)" << cik >>
         [&](std::string cik, std::string ticker, std::string title) {
             result = db::model::Company{std::move(cik), std::move(ticker), std::move(title)};

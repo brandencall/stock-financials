@@ -11,7 +11,7 @@ class CompanyRepository {
     void createTable();
     void upsert(const db::model::Company &company);
     std::vector<db::model::Company> getAll();
-    db::model::Company getCompanyByCIK(std::string cik);
+    std::optional<db::model::Company> getCompanyByCIK(const std::string &cik);
 
   private:
     db::Database &db_;
