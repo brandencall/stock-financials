@@ -1,11 +1,12 @@
 #include "data_parser.h"
+#include <fstream>
 
-DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap, db::repository::FilingRepository &filingRepo,
-                       db::repository::FinancialFactRepository &factRepo)
+DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap,
+                       db::repository::FilingRepository &filingRepo, db::repository::FinancialFactRepository &factRepo)
     : tagMap(tagMap), filingRepo(filingRepo), factRepo(factRepo) {}
 
-void DataParser::parseAndInsertData(std::filesystem::path path) {
-    std::ifstream file(path);
+void DataParser::parseAndInsertData(const std::string &filename) {
+    std::ifstream file(filename);
     json data = json::parse(file);
     std::string cik = std::to_string(data["cik"].get<long long>());
     std::unordered_map<std::string, int> filing_map;
@@ -41,7 +42,7 @@ void DataParser::parseAndInsertTagData(db::model::CompanyRecord &record, const j
         record.unit = unit;
         for (const auto &entry : entries) {
             parseCompanyRecord(entry, record);
-            printFact(record);
+            //printFact(record);
             if (filing_map.find(record.accession) != filing_map.end()) {
                 record.filingId = filing_map[record.accession];
                 factRepo.insert(record);
@@ -77,7 +78,8 @@ void DataParser::parseCompanyRecord(const json &entry, db::model::CompanyRecord 
         record.filed = entry["filed"].get<std::string>();
 }
 
-void DataParser::handleNonCachedAccession(db::model::CompanyRecord &record, std::unordered_map<std::string, int> &filing_map) {
+void DataParser::handleNonCachedAccession(db::model::CompanyRecord &record,
+                                          std::unordered_map<std::string, int> &filing_map) {
     std::optional<int> filingId = filingRepo.getFileIdByAccession(record.accession);
     if (filingId != std::nullopt) {
         filing_map[record.accession] = filingId.value();

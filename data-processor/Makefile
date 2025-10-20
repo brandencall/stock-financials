@@ -2,7 +2,7 @@
 CXX = g++
 CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -MMD -MP -I../database/include
 LIB_DIR = ../database/lib
-LIBS = -lcurl -lstockdatabase -lsqlite3
+LIBS = -lcurl -lstockdatabase -lsqlite3 -lcrypto
 
 # Directories
 SRC_DIR = src

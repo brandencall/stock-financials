@@ -19,7 +19,7 @@ class DataParser {
     explicit DataParser(std::unordered_map<std::string, std::string> tagMap,
                         db::repository::FilingRepository &filingRepo,
                         db::repository::FinancialFactRepository &factRepo);
-    void parseAndInsertData(std::filesystem::path path);
+    void parseAndInsertData(const std::string &filename);
 
   private:
     std::unordered_map<std::string, std::string> tagMap;

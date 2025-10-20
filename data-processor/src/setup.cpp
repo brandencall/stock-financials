@@ -1,4 +1,5 @@
 #include "setup.h"
+#include "repositories/company_facts_metadata.h"
 #include <iostream>
 
 db::Database setup_db() {
@@ -23,6 +24,12 @@ db::repository::FinancialFactRepository setup_fact_repo(db::Database &db) {
     db::repository::FinancialFactRepository fact(db);
     fact.createTable();
     return fact;
+}
+
+db::repository::CompanyFactsMetadataRepository setup_company_fact_metadata_repo(db::Database &db) {
+    db::repository::CompanyFactsMetadataRepository metadata(db);
+    metadata.createTable();
+    return metadata;
 }
 
 std::filesystem::path setup_company_fact_data() {

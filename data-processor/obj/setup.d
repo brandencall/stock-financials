@@ -1,5 +1,7 @@
 obj/setup.o: src/setup.cpp include/setup.h ../database/include/database.h \
  include/get_data.h ../database/include/models/company.h \
+ ../database/include/repositories/company_facts_metadata.h \
+ ../database/include/repositories/../models/company_fact_metadata.h \
  ../database/include/repositories/company_repository.h \
  ../database/include/repositories/filing_repository.h \
  ../database/include/repositories/../models/company_record.h \
@@ -10,6 +12,8 @@ include/setup.h:
 ../database/include/database.h:
 include/get_data.h:
 ../database/include/models/company.h:
+../database/include/repositories/company_facts_metadata.h:
+../database/include/repositories/../models/company_fact_metadata.h:
 ../database/include/repositories/company_repository.h:
 ../database/include/repositories/filing_repository.h:
 ../database/include/repositories/../models/company_record.h:

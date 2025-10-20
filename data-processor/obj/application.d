@@ -1,4 +1,4 @@
-obj/main.o: src/main.cpp include/application.h \
+obj/application.o: src/application.cpp include/application.h \
  ../database/include/database.h include/get_data.h \
  ../database/include/models/company.h include/data_parser.h \
  ../database/include/models/company_record.h \
