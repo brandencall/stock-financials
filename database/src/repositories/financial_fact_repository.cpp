@@ -31,7 +31,7 @@ void FinancialFactRepository::upsert(const db::model::CompanyRecord &record) {
              value = excluded.value
          WHERE
              tag != excluded.tag OR
-             value != excluded.value;
+             value != excluded.value
         )" << record.filingId
               << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
 }
@@ -46,7 +46,7 @@ void FinancialFactRepository::upsert(const db::model::FinancialFact &fact) {
                 value = excluded.value
             WHERE
                 tag != excluded.tag OR
-                value != excluded.value;
+                value != excluded.value
     )" << fact.filingId
               << fact.tag << fact.startDate << fact.endDate << fact.value << fact.unit << fact.sourceTag;
 }

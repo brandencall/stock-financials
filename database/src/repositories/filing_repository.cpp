@@ -35,7 +35,7 @@ int FilingRepository::upsert(const db::model::CompanyRecord &record) {
              form != excluded.form OR
              fy != excluded.fy OR
              fp != excluded.fp OR
-             filed_date != excluded.filed_date;
+             filed_date != excluded.filed_date
             )"
        << record.accession << record.cik << record.form << record.fy << record.fp << record.filed;
     int filingId = 0;
@@ -59,7 +59,7 @@ int FilingRepository::upsert(const db::model::Filing &filing) {
              form != excluded.form OR
              fy != excluded.fy OR
              fp != excluded.fp OR
-             filed_date != excluded.filed_date;
+             filed_date != excluded.filed_date
     )" << filing.filingId
        << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filed_date;
     int filingId = 0;
