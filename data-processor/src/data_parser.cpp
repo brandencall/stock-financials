@@ -12,7 +12,6 @@ void DataParser::parseAndInsertData(const std::string &filename) {
     std::unordered_map<std::string, int> filing_map;
 
     for (const auto &[taxonomy, tags] : data["facts"].items()) {
-        std::cout << "Processing taxonomy: " << taxonomy << '\n';
         for (auto &[tag, tagData] : tags.items()) {
             if (!tagData.contains("units"))
                 continue;
@@ -29,20 +28,12 @@ void DataParser::parseAndInsertData(const std::string &filename) {
     }
 }
 
-void printFact(const db::model::CompanyRecord &record) {
-    std::cout << "RealTag: " << record.realTag << '\n';
-    std::cout << record.friendlyTag << " (" << record.unit << "): " << record.accession << " " << record.val << " FY"
-              << record.fy << " " << record.fp << " " << record.start << " - " << record.end << " " << record.filed
-              << " " << record.form << '\n';
-}
-
 void DataParser::parseAndInsertTagData(db::model::CompanyRecord &record, const json &tagData,
                                        std::unordered_map<std::string, int> &filing_map) {
     for (const auto &[unit, entries] : tagData.items()) {
         record.unit = unit;
         for (const auto &entry : entries) {
             parseCompanyRecord(entry, record);
-            //printFact(record);
             if (filing_map.find(record.accession) != filing_map.end()) {
                 record.filingId = filing_map[record.accession];
                 factRepo.insert(record);

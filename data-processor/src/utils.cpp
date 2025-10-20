@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <filesystem>
 #include <fstream>
 
 std::string computeSHA256(const std::string &filename) {
@@ -37,4 +38,18 @@ std::string computeSHA256(const std::string &filename) {
         oss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
 
     return oss.str();
+}
+
+std::filesystem::path getDataDirectory() {
+    std::filesystem::path dataDir = "/var/lib/stockfinances";
+    std::filesystem::create_directories(dataDir);
+    return dataDir;
+}
+
+void deleteDirectory(std::filesystem::path directory) {
+    if (std::filesystem::exists(directory)) {
+        std::filesystem::remove_all(directory);
+    } else {
+        std::cout << directory << " does not exist" << '\n';
+    }
 }

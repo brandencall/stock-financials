@@ -23,7 +23,7 @@ class Application {
     db::repository::CompanyFactsMetadataRepository metadataRepo;
 
     void processCompanyTickers();
-    std::string initializeCompanyBulkData();
+    std::string initializeCompanyBulkData(std::filesystem::path tmpDir);
     void processCompanyFacts(const std::filesystem::path &factsDir);
     std::unordered_map<std::string, std::string> buildTagMap();
     std::string getCIK(std::string cik);

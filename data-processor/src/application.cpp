@@ -1,4 +1,5 @@
 #include "application.h"
+#include "utils.h"
 #include <iostream>
 
 Application::Application(const std::string &dbPath)
@@ -11,28 +12,28 @@ Application::Application(const std::string &dbPath)
 
 void Application::run() {
     // processCompanyTickers();
-    // std::string bulkDataDir = initializeCompanyBulkData();
-    std::string bulkDataDir = std::filesystem::absolute("../data/tmp/companyfacts");
+    std::filesystem::path tmpDir = getDataDirectory() / "tmp";
+    // std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
+    std::filesystem::path bulkDataDir = std::filesystem::absolute(tmpDir) / "companyfacts";
     processCompanyFacts(bulkDataDir);
+    deleteDirectory(tmpDir);
 }
 
 void Application::processCompanyTickers() {
     std::vector<db::model::Company> companies = get_sec_company_tickers();
-    std::cout << "Inserting into the company table!" << '\n';
+    std::cout << "Inserting companies into the 'company' table!" << '\n';
     for (const auto &company : companies) {
         companyRepo.upsert(company);
     }
     std::cout << "Done inserting!" << '\n';
 }
 
-std::string Application::initializeCompanyBulkData() {
-    std::filesystem::path newDir = "../data";
-    std::filesystem::create_directories(newDir);
-    std::filesystem::path tmpDir = "../data/tmp";
+std::string Application::initializeCompanyBulkData(std::filesystem::path tmpDir) {
     std::filesystem::create_directories(tmpDir);
     std::filesystem::path file_path = std::filesystem::absolute(tmpDir) / "companyfacts.zip";
     std::filesystem::path extract_dir = std::filesystem::absolute(tmpDir) / "companyfacts";
 
+    std::cout << "Getting bulk data" << '\n';
     get_sec_bulk_data(file_path);
     std::string cmd = "unzip -o " + file_path.string() + " -d " + extract_dir.string() + " > /dev/null";
     std::cout << "Running: " << cmd << std::endl;
@@ -58,10 +59,10 @@ void Application::processCompanyFacts(const std::filesystem::path &factsDir) {
         std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
         if (company != std::nullopt) {
             std::cout << "Processing: " << count << '\n';
+            std::cout << "cik: " << cik << '\n';
             std::string computedHash = computeSHA256(filePath.path());
             std::optional<std::string> storedHash = metadataRepo.getHashByCIK(cik);
             if (storedHash == std::nullopt || computedHash != storedHash) {
-                std::cout << "cik: " << cik << '\n';
                 metadataRepo.upsert(cik, computedHash);
                 parser.parseAndInsertData(filePath.path());
             }

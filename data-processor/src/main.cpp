@@ -1,9 +1,9 @@
 #include "application.h"
+#include "utils.h"
 
 int main() {
-    std::filesystem::create_directories("../data");
-    std::filesystem::path path = std::filesystem::absolute("../data") / "stock_data.db";
-    Application app(path);
+    std::filesystem::path dbPath = getDataDirectory();
+    Application app(dbPath);
     app.run();
     return 0;
 }

@@ -63,21 +63,18 @@ void get_sec_bulk_data(std::filesystem::path path) {
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
     // 10 min timeout for the download
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
     std::cout << "Downloading " << url << " ..." << std::endl;
     CURLcode res = curl_easy_perform(curl);
 
-    if (res != CURLE_OK) {
-        std::cerr << "Download failed: " << curl_easy_strerror(res) << std::endl;
-    } else {
-        std::cout << "Download complete: " << outputFile << std::endl;
-
-        // (optional) print size
-        double size;
-        if (curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD_T, &size) == CURLE_OK)
-            std::cout << "Downloaded " << (size / (1024 * 1024)) << " MB\n";
-    }
-
     file.close();
     curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+        std::cerr << "Download failed: " << curl_easy_strerror(res) << std::endl;
+        throw "Error: Bulk Data download failed";
+    }
+
+    std::cout << "Download complete: " << outputFile << std::endl;
 }

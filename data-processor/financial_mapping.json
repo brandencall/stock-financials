@@ -11,9 +11,21 @@
     "Earnings Per Share Basic": ["EarningsPerShareBasic"],
     "Earnings Per Share Diluted": ["EarningsPerShareDiluted"],
     "Cash And Cash Equivalents": ["CashAndCashEquivalentsAtCarryingValue"],
+    "Accounts Receivable": ["AccountsReceivableNetCurrent"],
+    "Cash Flow": ["NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"],
     "Overall Debt": ["LongTermDebt"],
     "Current Debt": ["LongTermDebtCurrent"],
     "Long Term Debt": ["LongTermDebtNoncurrent"],
+    "Commercial Paper": ["CommercialPaper"],
     "Stockholders' Equity": ["StockholdersEquity"],
-    "Shares": ["EntityCommonStockSharesOutstanding"]
+    "Shares": ["EntityCommonStockSharesOutstanding"],
+    "Total Assets": ["Assets"],
+    "Current Assets": ["AssetsCurrent"],
+    "Inventory": ["InventoryNet"],
+    "Total Liabilities": ["Liabilities"],
+    "Current Liabilities": ["LiabilitiesCurrent"],
+    "Capital Expenditures": ["PaymentsToAcquirePropertyPlantAndEquipment"],
+    "Goodwill": ["Goodwill"],
+    "Intangible Assets": ["IntangibleAssetsNetExcludingGoodwill"],
+    "Dividends Per Share": ["CommonStockDividendsPerShareDeclared"]
 }
