@@ -49,7 +49,7 @@ void DataParser::parseAndInsertTagData(db::model::CompanyRecord &record, const j
             parseCompanyRecord(entry, record);
             if (filing_map.find(record.accession) != filing_map.end()) {
                 record.filingId = filing_map[record.accession];
-                factRepo.insert(record);
+                factRepo.upsert(record);
             } else {
                 handleNonCachedAccession(record, filing_map);
             }
@@ -88,11 +88,11 @@ void DataParser::handleNonCachedAccession(db::model::CompanyRecord &record,
     if (filingId != std::nullopt) {
         filing_map[record.accession] = filingId.value();
         record.filingId = filingId.value();
-        factRepo.insert(record);
+        factRepo.upsert(record);
     } else {
-        int newFilingId = filingRepo.insert(record);
+        int newFilingId = filingRepo.upsert(record);
         filing_map[record.accession] = newFilingId;
         record.filingId = newFilingId;
-        factRepo.insert(record);
+        factRepo.upsert(record);
     }
 }

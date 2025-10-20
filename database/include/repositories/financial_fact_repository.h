@@ -10,8 +10,8 @@ class FinancialFactRepository {
   public:
     explicit FinancialFactRepository(db::Database &db);
     void createTable();
-    void insert(const db::model::CompanyRecord &record);
-    void insert(const db::model::FinancialFact &financialFact);
+    void upsert(const db::model::CompanyRecord &record);
+    void upsert(const db::model::FinancialFact &financialFact);
 
   private:
     db::Database &db_;

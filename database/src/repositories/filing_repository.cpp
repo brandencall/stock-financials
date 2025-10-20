@@ -19,31 +19,47 @@ void FilingRepository::createTable() {
     )";
 }
 
-// TODO: Need to change this into an upsert statement
-int FilingRepository::insert(const db::model::CompanyRecord &record) {
+int FilingRepository::upsert(const db::model::CompanyRecord &record) {
     auto &db = db_.get();
-    try {
-        db << R"(
-            INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
-            VALUES (?, ?, ?, ?, ?, ?)
-        )" << record.accession
-           << record.cik << record.form << record.fy << record.fp << record.filed;
-    } catch (const sqlite::errors::constraint_primarykey &e) {
-        std::cerr << "Primary key constraint failed on 'Filing' table.\n";
-        std::cerr << "Error: " << e.what() << std::endl;
-        throw;
-    }
+    db << R"(
+         INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(accession) DO UPDATE SET 
+             cik = excluded.cik,
+             form = excluded.form,
+             fy = excluded.fy,
+             fp = excluded.fp,
+             filed_date = excluded.filed_date
+         WHERE
+             cik != excluded.cik OR
+             form != excluded.form OR
+             fy != excluded.fy OR
+             fp != excluded.fp OR
+             filed_date != excluded.filed_date;
+            )"
+       << record.accession << record.cik << record.form << record.fy << record.fp << record.filed;
     int filingId = 0;
     db << "SELECT last_insert_rowid()" >> filingId;
     return filingId;
 }
 
-// TODO: Need to change this into an upsert statement
-int FilingRepository::insert(const db::model::Filing &filing) {
+int FilingRepository::upsert(const db::model::Filing &filing) {
     auto &db = db_.get();
     db << R"(
-        INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
-        VALUES (?, ?, ?, ?, ?, ?)
+         INSERT INTO filings (accession, cik, form, fy, fp, filed_date)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(accession) DO UPDATE SET 
+             cik = excluded.cik,
+             form = excluded.form,
+             fy = excluded.fy,
+             fp = excluded.fp,
+             filed_date = excluded.filed_date
+         WHERE
+             cik != excluded.cik OR
+             form != excluded.form OR
+             fy != excluded.fy OR
+             fp != excluded.fp OR
+             filed_date != excluded.filed_date;
     )" << filing.filingId
        << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filed_date;
     int filingId = 0;

@@ -21,30 +21,32 @@ void FinancialFactRepository::createTable() {
     )";
 }
 
-// TODO: Need to change this into an upsert statement
-void FinancialFactRepository::insert(const db::model::CompanyRecord &record) {
-    try {
-        db_.get() << R"(
-            INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+void FinancialFactRepository::upsert(const db::model::CompanyRecord &record) {
+    db_.get() << R"(
+         INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(filingId, source_tag, start_date, end_date, unit)
+         DO UPDATE SET
+             tag = excluded.tag,
+             value = excluded.value
+         WHERE
+             tag != excluded.tag OR
+             value != excluded.value;
         )" << record.filingId
-                  << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
-    } catch (const sqlite::errors::constraint_primarykey &e) {
-        std::cerr << "Primary key constraint failed on 'FinancialFact' table.\n";
-        std::cerr << "Filing Id: " << record.filingId << '\n';
-        std::cerr << "Source Tag: " << record.realTag << '\n';
-        std::cerr << "Start Date: " << record.start << '\n';
-        std::cerr << "End Date: " << record.end << '\n';
-        std::cerr << "Error: " << e.what() << std::endl;
-        throw;
-    }
+              << record.friendlyTag << record.start << record.end << record.val << record.unit << record.realTag;
 }
 
-// TODO: Need to change this into an upsert statement
-void FinancialFactRepository::insert(const db::model::FinancialFact &fact) {
+void FinancialFactRepository::upsert(const db::model::FinancialFact &fact) {
     db_.get() << R"(
-        INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(filingId, source_tag, start_date, end_date, unit)
+            DO UPDATE SET
+                tag = excluded.tag,
+                value = excluded.value
+            WHERE
+                tag != excluded.tag OR
+                value != excluded.value;
     )" << fact.filingId
               << fact.tag << fact.startDate << fact.endDate << fact.value << fact.unit << fact.sourceTag;
 }

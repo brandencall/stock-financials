@@ -11,8 +11,8 @@ class FilingRepository {
   public:
     explicit FilingRepository(db::Database &db);
     void createTable();
-    int insert(const db::model::CompanyRecord &record);
-    int insert(const db::model::Filing &filing);
+    int upsert(const db::model::CompanyRecord &record);
+    int upsert(const db::model::Filing &filing);
     std::optional<int> getFileIdByAccession(std::string accession);
 
   private:
