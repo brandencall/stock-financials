@@ -19,6 +19,7 @@ void FilingRepository::createTable() {
     )";
 }
 
+// TODO: Need to change this into an upsert statement
 int FilingRepository::insert(const db::model::CompanyRecord &record) {
     auto &db = db_.get();
     try {
@@ -37,6 +38,7 @@ int FilingRepository::insert(const db::model::CompanyRecord &record) {
     return filingId;
 }
 
+// TODO: Need to change this into an upsert statement
 int FilingRepository::insert(const db::model::Filing &filing) {
     auto &db = db_.get();
     db << R"(

@@ -21,6 +21,7 @@ void FinancialFactRepository::createTable() {
     )";
 }
 
+// TODO: Need to change this into an upsert statement
 void FinancialFactRepository::insert(const db::model::CompanyRecord &record) {
     try {
         db_.get() << R"(
@@ -39,6 +40,7 @@ void FinancialFactRepository::insert(const db::model::CompanyRecord &record) {
     }
 }
 
+// TODO: Need to change this into an upsert statement
 void FinancialFactRepository::insert(const db::model::FinancialFact &fact) {
     db_.get() << R"(
         INSERT INTO financial_facts (filingId, tag, start_date, end_date, value, unit, source_tag)
