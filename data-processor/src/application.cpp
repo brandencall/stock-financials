@@ -11,10 +11,9 @@ Application::Application(const std::string &dbPath)
 }
 
 void Application::run() {
-    // processCompanyTickers();
+    processCompanyTickers();
     std::filesystem::path tmpDir = getDataDirectory() / "tmp";
-    // std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
-    std::filesystem::path bulkDataDir = std::filesystem::absolute(tmpDir) / "companyfacts";
+    std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
     processCompanyFacts(bulkDataDir);
     deleteDirectory(tmpDir);
 }
@@ -89,7 +88,7 @@ std::string Application::getCIK(std::string cik) {
     int start = 0;
     int end = cik.find('.');
     std::string result;
-    for (int i = 3; i < cik.size(); ++i) {
+    for (std::string::size_type i = 3; i < cik.size(); ++i) {
         if (cik[i] == '0')
             continue;
         start = i;
