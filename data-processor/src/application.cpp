@@ -52,22 +52,17 @@ void Application::processCompanyFacts(const std::filesystem::path &factsDir) {
     auto tagMap = buildTagMap();
 
     DataParser parser(tagMap, filingRepo, factRepo);
-    int count = 0;
     for (const auto &filePath : std::filesystem::directory_iterator(factsDir)) {
         std::string cik = getCIK(filePath.path().filename());
         std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
         if (company != std::nullopt) {
-            std::cout << "Processing: " << count << '\n';
-            std::cout << "cik: " << cik << '\n';
+            std::cout << "Processing CIK: " << cik << '\n';
             std::string computedHash = computeSHA256(filePath.path());
             std::optional<std::string> storedHash = metadataRepo.getHashByCIK(cik);
             if (storedHash == std::nullopt || computedHash != storedHash) {
                 metadataRepo.upsert(cik, computedHash);
                 parser.parseAndInsertData(filePath.path());
             }
-            if (count == 5)
-                break;
-            count++;
         }
     }
 }
