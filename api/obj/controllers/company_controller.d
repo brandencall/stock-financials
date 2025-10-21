@@ -1,0 +1,12 @@
+obj/controllers/company_controller.o: \
+ src/controllers/company_controller.cpp \
+ include/controllers/company_controller.h \
+ include/controllers/../services/company_service.h \
+ ../database/include/models/company.h \
+ ../database/include/repositories/company_repository.h \
+ ../database/include/repositories/../database.h
+include/controllers/company_controller.h:
+include/controllers/../services/company_service.h:
+../database/include/models/company.h:
+../database/include/repositories/company_repository.h:
+../database/include/repositories/../database.h:
