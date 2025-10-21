@@ -17,4 +17,5 @@ class Server {
     db::Database &db;
     db::repository::CompanyRepository companyRepo;
     service::CompanyService companyService;
+    controller::CompanyController companyController;
 };

@@ -7,6 +7,8 @@ int main() {
     db::Database db(file_path);
     Server server(db);
     server.registerControllers();
-    server.run(8080);
+    int port = 8080;
+    std::cout << "Api currently running on port: " << port << '\n';
+    server.run(port);
     return 0;
 }
