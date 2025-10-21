@@ -25,6 +25,7 @@ void CompanyController::getCompany(const httplib::Request &req, httplib::Respons
     if (!req.has_param("cik")) {
         res.status = 404;
         res.set_content(R"({"error": "Missing cik paramter"})", "application/json");
+        return;
     }
     std::string cik = req.get_param_value("cik");
     std::optional<db::model::Company> company = companyService.getCompanyByCIK(cik);
