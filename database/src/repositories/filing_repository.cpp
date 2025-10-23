@@ -67,10 +67,26 @@ int FilingRepository::upsert(const db::model::Filing &filing) {
     return filingId;
 }
 
-std::optional<int> FilingRepository::getFileIdByAccession(std::string accession) {
+std::optional<int> FilingRepository::getFileIdByAccession(std::string &accession) {
     std::optional<int> result;
     db_.get() << "SELECT filingId FROM filings WHERE accession = (?)" << accession >>
         [&](int filingId) { result = filingId; };
+    return result;
+}
+
+std::vector<db::model::Filing> FilingRepository::getFilingsForCIK(const std::string &cik) {
+    std::vector<db::model::Filing> result;
+    db_.get() << "SELECT filingId, accession, form, fy, fp, filed_date FROM filings WHERE cik = (?)" << cik >>
+        [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
+            db::model::Filing file;
+            file.filingId = filingId;
+            file.accession = accession;
+            file.form = form;
+            file.fy = fy;
+            file.fp = fp;
+            file.filed_date = filed_date;
+            result.push_back(file);
+        };
     return result;
 }
 

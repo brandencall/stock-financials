@@ -1,25 +1,24 @@
 #include "application.h"
-#include "utils.h"
-#include <iostream>
 
 Application::Application(const std::string &dbPath)
-    : db(dbPath), companyRepo(db), filingRepo(db), factRepo(db), metadataRepo(db) {
+    : curl(), db(dbPath), companyRepo(db), filingRepo(db), factRepo(db), metadataRepo(db), stockPriceRepo(db) {
     companyRepo.createTable();
     filingRepo.createTable();
     factRepo.createTable();
     metadataRepo.createTable();
+    stockPriceRepo.createTable();
 }
 
 void Application::run() {
     processCompanyTickers();
     std::filesystem::path tmpDir = getDataDirectory() / "tmp";
     std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
-    processCompanyFacts(bulkDataDir);
+    processCompanyData(bulkDataDir);
     deleteDirectory(tmpDir);
 }
 
 void Application::processCompanyTickers() {
-    std::vector<db::model::Company> companies = get_sec_company_tickers();
+    std::vector<db::model::Company> companies = curl.getSecCompanyTickers();
     std::cout << "Inserting companies into the 'company' table!" << '\n';
     for (const auto &company : companies) {
         companyRepo.upsert(company);
@@ -27,13 +26,13 @@ void Application::processCompanyTickers() {
     std::cout << "Done inserting!" << '\n';
 }
 
-std::string Application::initializeCompanyBulkData(std::filesystem::path tmpDir) {
+std::string Application::initializeCompanyBulkData(const std::filesystem::path &tmpDir) {
     std::filesystem::create_directories(tmpDir);
     std::filesystem::path file_path = std::filesystem::absolute(tmpDir) / "companyfacts.zip";
     std::filesystem::path extract_dir = std::filesystem::absolute(tmpDir) / "companyfacts";
 
     std::cout << "Getting bulk data" << '\n';
-    get_sec_bulk_data(file_path);
+    curl.getSecBulkData(file_path);
     std::string cmd = "unzip -o " + file_path.string() + " -d " + extract_dir.string() + " > /dev/null";
     std::cout << "Running: " << cmd << std::endl;
 
@@ -48,7 +47,7 @@ std::string Application::initializeCompanyBulkData(std::filesystem::path tmpDir)
     return extract_dir;
 }
 
-void Application::processCompanyFacts(const std::filesystem::path &factsDir) {
+void Application::processCompanyData(const std::filesystem::path &factsDir) {
     auto tagMap = buildTagMap();
 
     DataParser parser(tagMap, filingRepo, factRepo);
@@ -61,7 +60,9 @@ void Application::processCompanyFacts(const std::filesystem::path &factsDir) {
             std::optional<std::string> storedHash = metadataRepo.getHashByCIK(cik);
             if (storedHash == std::nullopt || computedHash != storedHash) {
                 metadataRepo.upsert(cik, computedHash);
-                parser.parseAndInsertData(filePath.path());
+                parser.parseAndInsertData(filePath.path(), cik);
+                insertPriceData(cik);
+                break;
             }
         }
     }
@@ -79,7 +80,27 @@ std::unordered_map<std::string, std::string> Application::buildTagMap() {
     return result;
 }
 
-std::string Application::getCIK(std::string cik) {
+void Application::insertPriceData(const std::string &cik) {
+    std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
+    std::vector<db::model::StockPrice> stockPrices = curl.getStockPriceData(company->ticker);
+    std::vector<db::model::Filing> filings = filingRepo.getFilingsForCIK(cik);
+
+    // Hash filed_date with filingId for easy look up.
+    std::unordered_map<std::string, int> date_map;
+
+    for (const auto &filing : filings) {
+        date_map[filing.filed_date] = filing.filingId;
+    }
+    for (auto &price : stockPrices) {
+        if (date_map.count(price.date)) {
+            std::cout << "Inserting into price repo for date: " << price.date << '\n';
+            price.filingId = date_map[price.date];
+            stockPriceRepo.upsert(price);
+        }
+    }
+}
+
+std::string Application::getCIK(const std::string &cik) {
     int start = 0;
     int end = cik.find('.');
     std::string result;

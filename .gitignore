@@ -1,6 +1,7 @@
 data/
 bin/
 notes.txt
+config.json
 
 *.o
 *.obj

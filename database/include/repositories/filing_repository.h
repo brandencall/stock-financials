@@ -13,7 +13,8 @@ class FilingRepository {
     void createTable();
     int upsert(const db::model::CompanyRecord &record);
     int upsert(const db::model::Filing &filing);
-    std::optional<int> getFileIdByAccession(std::string accession);
+    std::optional<int> getFileIdByAccession(std::string &accession);
+    std::vector<db::model::Filing> getFilingsForCIK(const std::string &cik);
 
   private:
     db::Database &db_;

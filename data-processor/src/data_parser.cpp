@@ -1,17 +1,15 @@
 #include "data_parser.h"
-#include <fstream>
 
 DataParser::DataParser(std::unordered_map<std::string, std::string> tagMap,
                        db::repository::FilingRepository &filingRepo, db::repository::FinancialFactRepository &factRepo)
     : tagMap(tagMap), filingRepo(filingRepo), factRepo(factRepo) {}
 
-void DataParser::parseAndInsertData(const std::string &filename) {
+void DataParser::parseAndInsertData(const std::string &filename, const std::string &cik) {
     std::ifstream file(filename);
     json data = json::parse(file);
-    std::string cik = getCIK(data["cik"]);
+    std::unordered_map<std::string, int> filing_map;
     if (cik.empty())
         return;
-    std::unordered_map<std::string, int> filing_map;
 
     for (const auto &[taxonomy, tags] : data["facts"].items()) {
         for (auto &[tag, tagData] : tags.items()) {
@@ -28,17 +26,6 @@ void DataParser::parseAndInsertData(const std::string &filename) {
             }
         }
     }
-}
-
-std::string DataParser::getCIK(const json &cikData) {
-    std::string cik;
-    if (cikData.is_number_integer()) {
-        cik = std::to_string(cikData.get<long long>());
-    } else if (cikData.is_string()) {
-        cik = cikData.get<std::string>();
-        cik.erase(0, cik.find_first_not_of('0'));
-    }
-    return cik;
 }
 
 void DataParser::parseAndInsertTagData(db::model::CompanyRecord &record, const json &tagData,
