@@ -40,9 +40,7 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
     while (attempt < maxRetries) {
         response = callAPI(url);
         j = json::parse(response);
-        long code = j["code"].get<long>();
-        std::cout << "Code: " << code << '\n';
-        if (code == 404) {
+        if (j.contains("code") && j["code"] == 404) {
             std::cout << "in the 404 check" << '\n';
             return prices;
         }
