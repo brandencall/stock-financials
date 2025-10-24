@@ -34,4 +34,5 @@ class Application {
     std::unordered_map<std::string, std::string> buildTagMap();
     void insertPriceData(const std::string &cik);
     std::string getCIK(const std::string &cik);
+    void cleanUp();
 };

@@ -1,4 +1,5 @@
 #include "application.h"
+#include "utils.h"
 
 Application::Application(const std::string &dbPath)
     : curl(), db(dbPath), companyRepo(db), filingRepo(db), factRepo(db), metadataRepo(db), stockPriceRepo(db) {
@@ -14,7 +15,7 @@ void Application::run() {
     std::filesystem::path tmpDir = getDataDirectory() / "tmp";
     std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
     processCompanyData(bulkDataDir);
-    deleteDirectory(tmpDir);
+    cleanUp();
 }
 
 void Application::processCompanyTickers() {
@@ -59,9 +60,14 @@ void Application::processCompanyData(const std::filesystem::path &factsDir) {
             std::string computedHash = computeSHA256(filePath.path());
             std::optional<std::string> storedHash = metadataRepo.getHashByCIK(cik);
             if (storedHash == std::nullopt || computedHash != storedHash) {
-                metadataRepo.upsert(cik, computedHash);
-                parser.parseAndInsertData(filePath.path(), cik);
-                insertPriceData(cik);
+                try {
+                    parser.parseAndInsertData(filePath.path(), cik);
+                    insertPriceData(cik);
+                    metadataRepo.upsert(cik, computedHash);
+                } catch (...) {
+                    cleanUp();
+                    break;
+                }
             }
         }
     }
@@ -111,4 +117,10 @@ std::string Application::getCIK(const std::string &cik) {
     }
     int cikLen = end - start;
     return cik.substr(start, cikLen);
+}
+
+void Application::cleanUp() {
+
+    std::filesystem::path tmpDir = getDataDirectory() / "tmp";
+    deleteDirectory(tmpDir);
 }
