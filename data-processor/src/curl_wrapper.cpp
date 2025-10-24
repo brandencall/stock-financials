@@ -2,6 +2,7 @@
 #include <chrono>
 #include <curl/curl.h>
 #include <stdexcept>
+#include <string>
 #include <thread>
 
 CurlWrapper::CurlWrapper() {
@@ -33,14 +34,16 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
     int attempt = 0;
     int maxRetries = 3;
     std::vector<db::model::StockPrice> prices;
-    HttpResponse response;
+    std::string response;
     json j;
 
     while (attempt < maxRetries) {
         response = callAPI(url);
-        if (response.responseCode == 404)
+        j = json::parse(response);
+        long code = j["code"].get<long>();
+        if (code == 404)
             return prices;
-        j = json::parse(response.response);
+
         std::string status = j["status"].get<std::string>();
         if (status == "error") {
             attempt++;
@@ -75,9 +78,9 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
 
 std::vector<db::model::Company> CurlWrapper::getSecCompanyTickers() {
     const std::string url = "https://www.sec.gov/files/company_tickers.json";
-    HttpResponse response = callAPI(url);
+    std::string response = callAPI(url);
 
-    auto data = json::parse(response.response);
+    auto data = json::parse(response);
     std::vector<db::model::Company> companies;
     for (auto &[key, value] : data.items()) {
         companies.push_back(value.get<db::model::Company>());
@@ -85,18 +88,17 @@ std::vector<db::model::Company> CurlWrapper::getSecCompanyTickers() {
     return companies;
 }
 
-HttpResponse CurlWrapper::callAPI(const std::string &url) {
-    HttpResponse response;
+std::string CurlWrapper::callAPI(const std::string &url) {
+    std::string response;
 
     CURL *curl = curl_easy_init();
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "stock-data (brandencall@live.com)");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallbackJson);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.response);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
         CURLcode res = curl_easy_perform(curl);
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.responseCode);
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
