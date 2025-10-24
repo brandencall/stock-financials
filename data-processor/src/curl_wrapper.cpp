@@ -1,4 +1,8 @@
 #include "curl_wrapper.h"
+#include <chrono>
+#include <curl/curl.h>
+#include <stdexcept>
+#include <thread>
 
 CurlWrapper::CurlWrapper() {
     std::ifstream ifs("config.json");
@@ -22,11 +26,36 @@ size_t CurlWrapper::writeCallbackFile(void *ptr, size_t size, size_t nmemb, void
     return size * nmemb;
 }
 
+// TODO: break this method up
 std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::string &ticker) {
     const std::string url =
         "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=1day&outputsize=5000&apikey=" + apiKey;
-    std::string response = callAPI(url);
-    json j = json::parse(response);
+    int attempt = 0;
+    int maxRetries = 3;
+    std::string response;
+    json j;
+
+    while (attempt < maxRetries) {
+        response = callAPI(url);
+        std::cout << "response: " << response << '\n';
+        j = json::parse(response);
+        std::string status = j["status"].get<std::string>();
+        if (status == "error") {
+            attempt++;
+            if (attempt < maxRetries) {
+                std::cout << "Rate limit hit for getting the stock Price data. Waiting 60 seconds for retry..." << '\n';
+                j.clear();
+                std::this_thread::sleep_for(std::chrono::seconds(60));
+            } else {
+                throw std::runtime_error("Exceeded retry limit. Could not process: " + ticker);
+            }
+        } else if (status != "ok") {
+            throw std::runtime_error("The status isn't error or ok? status: " + status);
+        } else {
+            break;
+        }
+    }
+
     std::string currency = j["meta"]["currency"].get<std::string>();
     std::vector<db::model::StockPrice> prices;
     for (const auto &price : j["values"]) {
