@@ -61,6 +61,12 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
             break;
         }
     }
+    std::vector<db::model::StockPrice> prices;
+
+    std::string currency;
+    if (j.contains("meta") && j["meta"].contains("currency")) {
+        currency = j["meta"]["currency"].get<std::string>();
+    }
 
     return parseStockPriceCall(j);
 }
@@ -76,23 +82,23 @@ std::vector<db::model::StockPrice> CurlWrapper::parseStockPriceCall(const json &
     for (const auto &price : j["values"]) {
         db::model::StockPrice sp;
         sp.currency = currency;
-        if (j.contains("datetime")) {
+        if (price.contains("datetime")) {
             sp.date = price["datetime"].get<std::string>();
         }
-        if (j.contains("open")) {
+        if (price.contains("open")) {
             sp.open = std::stod(price["open"].get<std::string>());
         }
-        if (j.contains("high")) {
-            sp.open = std::stod(price["high"].get<std::string>());
+        if (price.contains("high")) {
+            sp.high = std::stod(price["high"].get<std::string>());
         }
-        if (j.contains("low")) {
-            sp.open = std::stod(price["low"].get<std::string>());
+        if (price.contains("low")) {
+            sp.low = std::stod(price["low"].get<std::string>());
         }
-        if (j.contains("close")) {
-            sp.open = std::stod(price["close"].get<std::string>());
+        if (price.contains("close")) {
+            sp.close = std::stod(price["close"].get<std::string>());
         }
-        if (j.contains("volume")) {
-            sp.open = std::stod(price["volume"].get<std::string>());
+        if (price.contains("volume")) {
+            sp.volume = std::stod(price["volume"].get<std::string>());
         }
         prices.push_back(sp);
     }
