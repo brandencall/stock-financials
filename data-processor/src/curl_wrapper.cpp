@@ -37,7 +37,6 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
 
     while (attempt < maxRetries) {
         response = callAPI(url);
-        std::cout << "response: " << response << '\n';
         j = json::parse(response);
         std::string status = j["status"].get<std::string>();
         if (status == "error") {

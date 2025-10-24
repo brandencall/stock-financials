@@ -62,7 +62,6 @@ void Application::processCompanyData(const std::filesystem::path &factsDir) {
                 metadataRepo.upsert(cik, computedHash);
                 parser.parseAndInsertData(filePath.path(), cik);
                 insertPriceData(cik);
-                break;
             }
         }
     }
@@ -91,9 +90,9 @@ void Application::insertPriceData(const std::string &cik) {
     for (const auto &filing : filings) {
         date_map[filing.filed_date] = filing.filingId;
     }
+    std::cout << "Inserting stock prices" << '\n';
     for (auto &price : stockPrices) {
         if (date_map.count(price.date)) {
-            std::cout << "Inserting into price repo for date: " << price.date << '\n';
             price.filingId = date_map[price.date];
             stockPriceRepo.upsert(price);
         }
