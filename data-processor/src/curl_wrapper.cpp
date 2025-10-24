@@ -1,9 +1,11 @@
 #include "curl_wrapper.h"
+#include "models/stock_price.h"
 #include <chrono>
 #include <curl/curl.h>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 
 CurlWrapper::CurlWrapper() {
     std::ifstream ifs("config.json");
@@ -33,7 +35,6 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
         "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=1day&outputsize=5000&apikey=" + apiKey;
     int attempt = 0;
     int maxRetries = 3;
-    std::vector<db::model::StockPrice> prices;
     std::string response;
     json j;
 
@@ -42,9 +43,8 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
         j = json::parse(response);
         if (j.contains("code") && j["code"] == 404) {
             std::cout << "in the 404 check" << '\n';
-            return prices;
+            return std::vector<db::model::StockPrice>{};
         }
-
         std::string status = j["status"].get<std::string>();
         if (status == "error") {
             attempt++;
@@ -62,16 +62,38 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
         }
     }
 
-    std::string currency = j["meta"]["currency"].get<std::string>();
+    return parseStockPriceCall(j);
+}
+
+std::vector<db::model::StockPrice> CurlWrapper::parseStockPriceCall(const json &j) {
+    std::vector<db::model::StockPrice> prices;
+
+    std::string currency;
+    if (j.contains("meta") && j["meta"].contains("currency")) {
+        currency = j["meta"]["currency"].get<std::string>();
+    }
+
     for (const auto &price : j["values"]) {
         db::model::StockPrice sp;
         sp.currency = currency;
-        sp.date = price["datetime"].get<std::string>();
-        sp.open = std::stod(price["open"].get<std::string>());
-        sp.high = std::stod(price["high"].get<std::string>());
-        sp.low = std::stod(price["low"].get<std::string>());
-        sp.close = std::stod(price["close"].get<std::string>());
-        sp.volume = std::stod(price["volume"].get<std::string>());
+        if (j.contains("datetime")) {
+            sp.date = price["datetime"].get<std::string>();
+        }
+        if (j.contains("open")) {
+            sp.open = std::stod(price["open"].get<std::string>());
+        }
+        if (j.contains("high")) {
+            sp.open = std::stod(price["high"].get<std::string>());
+        }
+        if (j.contains("low")) {
+            sp.open = std::stod(price["low"].get<std::string>());
+        }
+        if (j.contains("close")) {
+            sp.open = std::stod(price["close"].get<std::string>());
+        }
+        if (j.contains("volume")) {
+            sp.open = std::stod(price["volume"].get<std::string>());
+        }
         prices.push_back(sp);
     }
     return prices;

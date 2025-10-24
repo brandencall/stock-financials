@@ -12,7 +12,6 @@
 
 using json = nlohmann::json;
 
-
 class CurlWrapper {
 
   public:
@@ -25,6 +24,7 @@ class CurlWrapper {
   private:
     std::string apiKey;
 
+    std::vector<db::model::StockPrice> parseStockPriceCall(const json &j);
     std::string callAPI(const std::string &url);
     static size_t writeCallbackJson(void *contents, size_t size, size_t nmemb, std::string *output);
     static size_t writeCallbackFile(void *ptr, size_t size, size_t nmemb, void *userdata);
