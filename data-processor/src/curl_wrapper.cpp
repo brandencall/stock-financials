@@ -32,12 +32,15 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
         "https://api.twelvedata.com/time_series?symbol=" + ticker + "&interval=1day&outputsize=5000&apikey=" + apiKey;
     int attempt = 0;
     int maxRetries = 3;
-    std::string response;
+    std::vector<db::model::StockPrice> prices;
+    HttpResponse response;
     json j;
 
     while (attempt < maxRetries) {
         response = callAPI(url);
-        j = json::parse(response);
+        if (response.responseCode == 404)
+            return prices;
+        j = json::parse(response.response);
         std::string status = j["status"].get<std::string>();
         if (status == "error") {
             attempt++;
@@ -56,7 +59,6 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
     }
 
     std::string currency = j["meta"]["currency"].get<std::string>();
-    std::vector<db::model::StockPrice> prices;
     for (const auto &price : j["values"]) {
         db::model::StockPrice sp;
         sp.currency = currency;
@@ -73,9 +75,9 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
 
 std::vector<db::model::Company> CurlWrapper::getSecCompanyTickers() {
     const std::string url = "https://www.sec.gov/files/company_tickers.json";
-    std::string response = callAPI(url);
+    HttpResponse response = callAPI(url);
 
-    auto data = json::parse(response);
+    auto data = json::parse(response.response);
     std::vector<db::model::Company> companies;
     for (auto &[key, value] : data.items()) {
         companies.push_back(value.get<db::model::Company>());
@@ -83,17 +85,18 @@ std::vector<db::model::Company> CurlWrapper::getSecCompanyTickers() {
     return companies;
 }
 
-std::string CurlWrapper::callAPI(const std::string &url) {
-    std::string response;
+HttpResponse CurlWrapper::callAPI(const std::string &url) {
+    HttpResponse response;
 
     CURL *curl = curl_easy_init();
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "stock-data (brandencall@live.com)");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallbackJson);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response.response);
 
         CURLcode res = curl_easy_perform(curl);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.responseCode);
         curl_easy_cleanup(curl);
 
         if (res != CURLE_OK) {
