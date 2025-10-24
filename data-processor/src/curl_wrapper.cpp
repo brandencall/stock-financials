@@ -41,8 +41,11 @@ std::vector<db::model::StockPrice> CurlWrapper::getStockPriceData(const std::str
         response = callAPI(url);
         j = json::parse(response);
         long code = j["code"].get<long>();
-        if (code == 404)
+        std::cout << "Code: " << code << '\n';
+        if (code == 404) {
+            std::cout << "in the 404 check" << '\n';
             return prices;
+        }
 
         std::string status = j["status"].get<std::string>();
         if (status == "error") {
