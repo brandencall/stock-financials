@@ -16,6 +16,7 @@ void Application::run() {
     std::string bulkDataDir = initializeCompanyBulkData(tmpDir);
     processCompanyData(bulkDataDir);
     cleanUp();
+    std::cout << "Data processor finished!" << '\n';
 }
 
 void Application::processCompanyTickers() {
