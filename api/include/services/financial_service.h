@@ -30,5 +30,12 @@ class FinancialService {
 
     void addFactPE(std::vector<db::model::FinancialFact> &facts, db::model::StockPrice &stockPrice);
     std::string getEPSCurrency(std::string &epsUnit);
+    // Price to book. book = (total assets - total liabilities - intangible)/ shares
+    // intangible is Goodwill and IntangibleAssetsNetExcludingGoodwill.
+    void addFactTangiblePB(std::vector<db::model::FinancialFact> &facts, db::model::StockPrice &stockPrice);
+    // Current Ratio = current assets / current liabilities
+    void addFactCurrentRatio(std::vector<db::model::FinancialFact> &facts);
+    // Debt to equity ratio = Liabilities / LongTermDebt
+    void addFactDebtToEquity(std::vector<db::model::FinancialFact> &facts);
 };
 } // namespace service
