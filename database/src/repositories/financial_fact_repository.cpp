@@ -1,5 +1,6 @@
 #include "repositories/financial_fact_repository.h"
 #include "models/company_record.h"
+#include "models/financial_fact.h"
 
 namespace db::repository {
 
@@ -49,6 +50,58 @@ void FinancialFactRepository::upsert(const db::model::FinancialFact &fact) {
                 value != excluded.value
     )" << fact.filingId
               << fact.tag << fact.startDate << fact.endDate << fact.value << fact.unit << fact.sourceTag;
+}
+
+std::vector<model::FinancialFact> FinancialFactRepository::getByFilingId(int filingId) {
+    std::vector<db::model::FinancialFact> result;
+    db_.get() << R"(
+        SELECT tag, start_date, end_date, value, unit, source_tag 
+        FROM financial_facts 
+        WHERE filingId = (?)
+    )" << filingId >>
+        [&](std::string tag, std::string startDate, std::string endDate, double value, std::string unit,
+            std::string sourceTag) {
+            model::FinancialFact fact;
+            fact.filingId = filingId;
+            fact.tag = std::move(tag);
+            fact.startDate = std::move(startDate);
+            fact.endDate = std::move(endDate);
+            fact.value = value;
+            fact.unit = std::move(unit);
+            fact.sourceTag = std::move(sourceTag);
+            result.push_back(fact);
+        };
+    return result;
+}
+
+std::vector<model::FinancialFact> FinancialFactRepository::getFilteredByFilingId(int filingId) {
+    std::vector<db::model::FinancialFact> result;
+    db_.get() << R"(
+        SELECT tag, start_date, end_date, value, unit, source_tag
+        FROM (
+          SELECT *,
+                 ROW_NUMBER() OVER (
+                     PARTITION BY tag
+                     ORDER BY end_date DESC, start_date DESC
+                 ) AS rn
+          FROM financial_facts
+          WHERE filingId = (?)
+        ) t
+        WHERE rn = 1
+    )" << filingId >>
+        [&](std::string tag, std::string startDate, std::string endDate, double value, std::string unit,
+            std::string sourceTag) {
+            model::FinancialFact fact;
+            fact.filingId = filingId;
+            fact.tag = std::move(tag);
+            fact.startDate = std::move(startDate);
+            fact.endDate = std::move(endDate);
+            fact.value = value;
+            fact.unit = std::move(unit);
+            fact.sourceTag = std::move(sourceTag);
+            result.push_back(fact);
+        };
+    return result;
 }
 
 } // namespace db::repository

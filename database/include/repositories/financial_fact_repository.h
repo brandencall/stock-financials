@@ -12,6 +12,8 @@ class FinancialFactRepository {
     void createTable();
     void upsert(const db::model::CompanyRecord &record);
     void upsert(const db::model::FinancialFact &financialFact);
+    std::vector<model::FinancialFact> getByFilingId(int filingId);
+    std::vector<model::FinancialFact> getFilteredByFilingId(int filingId);
 
   private:
     db::Database &db_;

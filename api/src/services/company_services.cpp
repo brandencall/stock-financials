@@ -1,5 +1,4 @@
 #include "services/company_service.h"
-#include <iostream>
 
 namespace service {
 

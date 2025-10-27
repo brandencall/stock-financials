@@ -61,7 +61,7 @@ int FilingRepository::upsert(const db::model::Filing &filing) {
              fp != excluded.fp OR
              filed_date != excluded.filed_date
     )" << filing.filingId
-       << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filed_date;
+       << filing.accession << filing.cik << filing.form << filing.fy << filing.fp << filing.filedDate;
     int filingId = 0;
     db << "SELECT last_insert_rowid()" >> filingId;
     return filingId;
@@ -84,7 +84,41 @@ std::vector<db::model::Filing> FilingRepository::getFilingsForCIK(const std::str
             file.form = form;
             file.fy = fy;
             file.fp = fp;
-            file.filed_date = filed_date;
+            file.filedDate = filed_date;
+            result.push_back(file);
+        };
+    return result;
+}
+
+std::vector<db::model::Filing> FilingRepository::getAnnualFilingsForCIK(const std::string &cik) {
+    std::vector<db::model::Filing> result;
+    db_.get() << "SELECT filingId, accession, form, fy, fp, filed_date FROM filings WHERE cik = (?) AND fp = 'FY'"
+              << cik >>
+        [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
+            db::model::Filing file;
+            file.filingId = filingId;
+            file.accession = accession;
+            file.form = form;
+            file.fy = fy;
+            file.fp = fp;
+            file.filedDate = filed_date;
+            result.push_back(file);
+        };
+    return result;
+}
+
+std::vector<db::model::Filing> FilingRepository::getQuarterlyFilingsForCIK(const std::string &cik) {
+    std::vector<db::model::Filing> result;
+    db_.get() << "SELECT filingId, accession, form, fy, fp, filed_date FROM filings WHERE cik = (?) AND fp != 'FY'"
+              << cik >>
+        [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
+            db::model::Filing file;
+            file.filingId = filingId;
+            file.accession = accession;
+            file.form = form;
+            file.fy = fy;
+            file.fp = fp;
+            file.filedDate = filed_date;
             result.push_back(file);
         };
     return result;

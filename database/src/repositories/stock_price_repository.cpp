@@ -1,6 +1,5 @@
 #include "repositories/stock_price_repository.h"
 #include "models/stock_price.h"
-#include <iostream>
 
 namespace db::repository {
 
@@ -46,6 +45,26 @@ void StockPriceRepository::upsert(const db::model::StockPrice &stockPrice) {
     )" << stockPrice.filingId
               << stockPrice.date << stockPrice.currency << stockPrice.open << stockPrice.high << stockPrice.low
               << stockPrice.close << stockPrice.volume;
+}
+
+model::StockPrice StockPriceRepository::getByFilingId(int filingId) {
+    model::StockPrice stockPrice;
+    stockPrice.filingId = filingId;
+    db_.get() << R"(
+        SELECT date, currency, open, high, low, close, volume
+        FROM stock_prices
+        WHERE filingId = (?)
+    )" << filingId >>
+        [&](std::string date, std::string currency, double open, double high, double low, double close, double volume) {
+            stockPrice.date = std::move(date);
+            stockPrice.currency = std::move(currency);
+            stockPrice.open = open;
+            stockPrice.high = high;
+            stockPrice.low = low;
+            stockPrice.close = close;
+            stockPrice.volume = volume;
+        };
+    return stockPrice;
 }
 
 } // namespace db::repository

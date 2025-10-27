@@ -15,6 +15,8 @@ class FilingRepository {
     int upsert(const db::model::Filing &filing);
     std::optional<int> getFileIdByAccession(std::string &accession);
     std::vector<db::model::Filing> getFilingsForCIK(const std::string &cik);
+    std::vector<db::model::Filing> getAnnualFilingsForCIK(const std::string &cik);
+    std::vector<db::model::Filing> getQuarterlyFilingsForCIK(const std::string &cik);
 
   private:
     db::Database &db_;

@@ -95,7 +95,7 @@ void Application::insertPriceData(const std::string &cik) {
     std::unordered_map<std::string, int> date_map;
 
     for (const auto &filing : filings) {
-        date_map[filing.filed_date] = filing.filingId;
+        date_map[filing.filedDate] = filing.filingId;
     }
     std::cout << "Inserting stock prices" << '\n';
     for (auto &price : stockPrices) {
