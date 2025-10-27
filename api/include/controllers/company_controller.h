@@ -1,6 +1,6 @@
 #pragma once
 #include "../services/company_service.h"
-#include "../services/finacial_service.h"
+#include "../services/financial_service.h"
 #include "models/company.h"
 #include <httplib.h>
 #include <nlohmann/json.hpp>

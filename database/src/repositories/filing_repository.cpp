@@ -90,10 +90,15 @@ std::vector<db::model::Filing> FilingRepository::getFilingsForCIK(const std::str
     return result;
 }
 
-std::vector<db::model::Filing> FilingRepository::getAnnualFilingsForCIK(const std::string &cik) {
+std::vector<db::model::Filing> FilingRepository::getAnnualFilingsForCIK(const std::string &cik, int limit) {
     std::vector<db::model::Filing> result;
-    db_.get() << "SELECT filingId, accession, form, fy, fp, filed_date FROM filings WHERE cik = (?) AND fp = 'FY'"
-              << cik >>
+    db_.get() << R"(
+        SELECT filingId, accession, form, fy, fp, filed_date 
+        FROM filings 
+        WHERE cik = (?) AND fp = 'FY'
+        ORDER BY filed_date DESC
+        LIMIT (?)
+    )" << cik << limit >>
         [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
             db::model::Filing file;
             file.filingId = filingId;
@@ -107,10 +112,15 @@ std::vector<db::model::Filing> FilingRepository::getAnnualFilingsForCIK(const st
     return result;
 }
 
-std::vector<db::model::Filing> FilingRepository::getQuarterlyFilingsForCIK(const std::string &cik) {
+std::vector<db::model::Filing> FilingRepository::getQuarterlyFilingsForCIK(const std::string &cik, int limit) {
     std::vector<db::model::Filing> result;
-    db_.get() << "SELECT filingId, accession, form, fy, fp, filed_date FROM filings WHERE cik = (?) AND fp != 'FY'"
-              << cik >>
+    db_.get() << R"(
+        SELECT filingId, accession, form, fy, fp, filed_date 
+        FROM filings 
+        WHERE cik = (?) AND fp != 'FY'
+        ORDER BY filed_date DESC
+        LIMIT (?)
+    )" << cik << limit >>
         [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
             db::model::Filing file;
             file.filingId = filingId;

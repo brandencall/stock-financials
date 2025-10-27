@@ -10,7 +10,7 @@ class StockPriceRepository {
     explicit StockPriceRepository(db::Database &db);
     void createTable();
     void upsert(const db::model::StockPrice &stockPrice);
-    model::StockPrice getByFilingId(int filingId);
+    std::optional<model::StockPrice> getByFilingId(int filingId);
 
   private:
     db::Database &db_;

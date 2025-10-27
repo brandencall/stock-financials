@@ -1,5 +1,6 @@
 #include "repositories/stock_price_repository.h"
 #include "models/stock_price.h"
+#include <optional>
 
 namespace db::repository {
 
@@ -47,22 +48,24 @@ void StockPriceRepository::upsert(const db::model::StockPrice &stockPrice) {
               << stockPrice.close << stockPrice.volume;
 }
 
-model::StockPrice StockPriceRepository::getByFilingId(int filingId) {
-    model::StockPrice stockPrice;
-    stockPrice.filingId = filingId;
+std::optional<model::StockPrice> StockPriceRepository::getByFilingId(int filingId) {
+    std::optional<model::StockPrice> stockPrice = std::nullopt;
     db_.get() << R"(
         SELECT date, currency, open, high, low, close, volume
         FROM stock_prices
         WHERE filingId = (?)
     )" << filingId >>
         [&](std::string date, std::string currency, double open, double high, double low, double close, double volume) {
-            stockPrice.date = std::move(date);
-            stockPrice.currency = std::move(currency);
-            stockPrice.open = open;
-            stockPrice.high = high;
-            stockPrice.low = low;
-            stockPrice.close = close;
-            stockPrice.volume = volume;
+            model::StockPrice returnPrice;
+            returnPrice.filingId = filingId;
+            returnPrice.date = std::move(date);
+            returnPrice.currency = std::move(currency);
+            returnPrice.open = open;
+            returnPrice.high = high;
+            returnPrice.low = low;
+            returnPrice.close = close;
+            returnPrice.volume = volume;
+            stockPrice = returnPrice;
         };
     return stockPrice;
 }

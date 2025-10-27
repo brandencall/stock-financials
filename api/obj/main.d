@@ -3,7 +3,7 @@ obj/main.o: src/main.cpp ../database/include/database.h include/server.h \
  include/controllers/../services/company_service.h \
  ../database/include/models/company.h \
  ../database/include/repositories/company_repository.h \
- include/controllers/../services/finacial_service.h \
+ include/controllers/../services/financial_service.h \
  ../database/include/models/company_financials.h \
  ../database/include/models/financial_report.h \
  ../database/include/models/filing.h \
@@ -19,7 +19,7 @@ include/controllers/company_controller.h:
 include/controllers/../services/company_service.h:
 ../database/include/models/company.h:
 ../database/include/repositories/company_repository.h:
-include/controllers/../services/finacial_service.h:
+include/controllers/../services/financial_service.h:
 ../database/include/models/company_financials.h:
 ../database/include/models/financial_report.h:
 ../database/include/models/filing.h:

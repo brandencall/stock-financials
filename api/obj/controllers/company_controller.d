@@ -5,7 +5,7 @@ obj/controllers/company_controller.o: \
  ../database/include/models/company.h \
  ../database/include/repositories/company_repository.h \
  ../database/include/repositories/../database.h \
- include/controllers/../services/finacial_service.h \
+ include/controllers/../services/financial_service.h \
  ../database/include/models/company_financials.h \
  ../database/include/models/financial_report.h \
  ../database/include/models/filing.h \
@@ -20,7 +20,7 @@ include/controllers/../services/company_service.h:
 ../database/include/models/company.h:
 ../database/include/repositories/company_repository.h:
 ../database/include/repositories/../database.h:
-include/controllers/../services/finacial_service.h:
+include/controllers/../services/financial_service.h:
 ../database/include/models/company_financials.h:
 ../database/include/models/financial_report.h:
 ../database/include/models/filing.h:

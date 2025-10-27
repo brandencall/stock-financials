@@ -7,7 +7,7 @@
 #include "repositories/financial_fact_repository.h"
 #include "repositories/stock_price_repository.h"
 #include "services/company_service.h"
-#include "services/finacial_service.h"
+#include "services/financial_service.h"
 #include <httplib.h>
 
 class Server {

@@ -1,27 +1,27 @@
 obj/services/financial_service.o: src/services/financial_service.cpp \
+ include/services/financial_service.h \
+ ../database/include/models/company_financials.h \
+ ../database/include/models/company.h \
  ../database/include/models/financial_report.h \
  ../database/include/models/filing.h \
  ../database/include/models/financial_fact.h \
  ../database/include/models/stock_price.h \
- ../database/include/repositories/filing_repository.h \
+ ../database/include/repositories/company_repository.h \
  ../database/include/repositories/../database.h \
+ ../database/include/repositories/filing_repository.h \
  ../database/include/repositories/../models/company_record.h \
  ../database/include/repositories/financial_fact_repository.h \
- ../database/include/repositories/stock_price_repository.h \
- include/services/finacial_service.h \
- ../database/include/models/company_financials.h \
- ../database/include/models/company.h \
- ../database/include/repositories/company_repository.h
+ ../database/include/repositories/stock_price_repository.h
+include/services/financial_service.h:
+../database/include/models/company_financials.h:
+../database/include/models/company.h:
 ../database/include/models/financial_report.h:
 ../database/include/models/filing.h:
 ../database/include/models/financial_fact.h:
 ../database/include/models/stock_price.h:
-../database/include/repositories/filing_repository.h:
+../database/include/repositories/company_repository.h:
 ../database/include/repositories/../database.h:
+../database/include/repositories/filing_repository.h:
 ../database/include/repositories/../models/company_record.h:
 ../database/include/repositories/financial_fact_repository.h:
 ../database/include/repositories/stock_price_repository.h:
-include/services/finacial_service.h:
-../database/include/models/company_financials.h:
-../database/include/models/company.h:
-../database/include/repositories/company_repository.h:

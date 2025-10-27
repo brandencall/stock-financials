@@ -1,8 +1,4 @@
-#include "models/financial_report.h"
-#include "repositories/filing_repository.h"
-#include "repositories/financial_fact_repository.h"
-#include "repositories/stock_price_repository.h"
-#include "services/finacial_service.h"
+#include "services/financial_service.h"
 
 namespace service {
 
@@ -13,7 +9,7 @@ FinancialService::FinancialService(db::repository::CompanyRepository companyRepo
     : companyRepo(companyRepo), filingRepo(filingRepo), factRepo(factRepo), stockRepo(stockRepo) {};
 
 std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(const std::string &cik,
-                                                                                const std::string &period) {
+                                                                                const std::string &period, int limit) {
     db::model::CompanyFinancials result;
     std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
     if (company == std::nullopt) {
@@ -24,9 +20,9 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
 
     std::vector<db::model::Filing> filings;
     if (period == "annual") {
-        filings = filingRepo.getAnnualFilingsForCIK(cik);
+        filings = filingRepo.getAnnualFilingsForCIK(cik, limit);
     } else {
-        filings = filingRepo.getQuarterlyFilingsForCIK(cik);
+        filings = filingRepo.getQuarterlyFilingsForCIK(cik, limit);
     }
 
     std::vector<db::model::FinancialReport> financialReports;
@@ -34,10 +30,50 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
         db::model::FinancialReport financialReport;
         financialReport.filing = filing;
         financialReport.facts = factRepo.getFilteredByFilingId(filing.filingId);
-        financialReport.stockPrice = stockRepo.getByFilingId(filing.filingId);
+        std::optional<db::model::StockPrice> stockPrice = stockRepo.getByFilingId(filing.filingId);
+        if (stockPrice.has_value()) {
+            financialReport.stockPrice = stockPrice.value();
+            addFactPE(financialReport.facts, financialReport.stockPrice);
+        }
         financialReports.push_back(financialReport);
     }
     result.reports = financialReports;
+    return result;
+}
+
+//  P/E ratio is calculated with diluted EPS
+void FinancialService::addFactPE(std::vector<db::model::FinancialFact> &facts, db::model::StockPrice &stockPrice) {
+    std::optional<db::model::FinancialFact> epsFact = std::nullopt;
+    for (const auto &f : facts) {
+        if (f.sourceTag == "EarningsPerShareDiluted") {
+            epsFact = f;
+            break;
+        }
+    }
+    if (epsFact.has_value()) {
+        std::string epsCurrency = getEPSCurrency(epsFact->unit);
+        if (epsCurrency != stockPrice.currency)
+            return;
+        double eps = epsFact->value;
+        double pe = stockPrice.close / eps;
+        db::model::FinancialFact peFact;
+        peFact.filingId = epsFact->filingId;
+        peFact.endDate = epsFact->endDate;
+        peFact.value = pe;
+        peFact.tag = "PE ratio";
+        facts.push_back(peFact);
+    }
+}
+
+std::string FinancialService::getEPSCurrency(std::string &epsUnit) {
+    std::string result;
+    char target = '/';
+    size_t foundPos = epsUnit.find(target);
+
+    if (foundPos != std::string::npos) {
+        result = epsUnit.substr(0, foundPos);
+    }
+
     return result;
 }
 
