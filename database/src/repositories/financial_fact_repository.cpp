@@ -82,7 +82,7 @@ std::vector<model::FinancialFact> FinancialFactRepository::getFilteredByFilingId
           SELECT *,
                  ROW_NUMBER() OVER (
                      PARTITION BY tag
-                     ORDER BY end_date DESC, start_date DESC
+                     ORDER BY end_date DESC, start_date ASC
                  ) AS rn
           FROM financial_facts
           WHERE filingId = (?)
