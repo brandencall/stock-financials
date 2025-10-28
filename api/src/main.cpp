@@ -3,8 +3,9 @@
 #include <httplib.h>
 
 int main() {
-    std::filesystem::path file_path = "../data/stock_data.db";
-    db::Database db(file_path);
+    // std::filesystem::path dataDir= "../data/stock_data.db";
+    std::filesystem::path dataDir = "/var/lib/stockfinances";
+    db::Database db(dataDir);
     Server server(db);
     server.registerControllers();
     int port = 8080;
