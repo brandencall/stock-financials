@@ -28,6 +28,14 @@ class FinancialService {
     db::repository::FinancialFactRepository factRepo;
     db::repository::StockPriceRepository stockRepo;
 
+    std::vector<db::model::FinancialReport> getFinancialReports(std::vector<db::model::Filing> filings,
+                                                                std::string period);
+
+    std::vector<db::model::FinancialReport> consolidateFinancialReports(
+        std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear);
+    void
+    sortByFilingDate(std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear);
+
     void addFactPE(std::vector<db::model::FinancialFact> &facts, db::model::StockPrice &stockPrice);
     std::string getEPSCurrency(std::string &epsUnit);
     // Price to book. book = (total assets - total liabilities - intangible)/ shares

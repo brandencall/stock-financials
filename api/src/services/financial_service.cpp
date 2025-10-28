@@ -1,4 +1,9 @@
 #include "services/financial_service.h"
+#include "models/financial_fact.h"
+#include "models/financial_report.h"
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace service {
 
@@ -25,20 +30,64 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
         filings = filingRepo.getQuarterlyFilingsForCIK(cik, limit);
     }
 
-    std::vector<db::model::FinancialReport> financialReports;
+    result.reports = getFinancialReports(filings, period);
+    return result;
+}
+
+std::vector<db::model::FinancialReport> FinancialService::getFinancialReports(std::vector<db::model::Filing> filings,
+                                                                              std::string period) {
+    std::unordered_map<std::string, std::vector<db::model::FinancialReport>> reportsGroupedByYear;
+
     for (const auto &filing : filings) {
         db::model::FinancialReport financialReport;
         financialReport.filing = filing;
-        financialReport.facts = factRepo.getFilteredByFilingId(filing.filingId);
+        financialReport.facts = factRepo.getFilteredByFilingId(filing.filingId, period);
         std::optional<db::model::StockPrice> stockPrice = stockRepo.getByFilingId(filing.filingId);
         if (stockPrice.has_value()) {
             financialReport.stockPrice = stockPrice.value();
             addFactPE(financialReport.facts, financialReport.stockPrice);
         }
-        financialReports.push_back(financialReport);
+        std::string key = filing.fp + std::to_string(filing.fy);
+        reportsGroupedByYear[key].push_back(std::move(financialReport));
     }
-    result.reports = financialReports;
+
+    return consolidateFinancialReports(reportsGroupedByYear);
+}
+
+std::vector<db::model::FinancialReport> FinancialService::consolidateFinancialReports(
+    std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear) {
+    std::vector<db::model::FinancialReport> result;
+    sortByFilingDate(reportsGroupedByYear);
+    for (auto &[_, report] : reportsGroupedByYear) {
+        std::unordered_map<std::string, db::model::FinancialFact> mergedFact;
+        for (const auto &report : report) {
+            for (const auto &fact : report.facts) {
+                std::string key = fact.sourceTag + fact.unit + fact.startDate + fact.endDate;
+                mergedFact[key] = fact;
+            }
+        }
+        db::model::FinancialReport newReport;
+        newReport.filing = report[0].filing;
+        newReport.stockPrice = report[0].stockPrice;
+        newReport.facts.reserve(mergedFact.size());
+        for (auto &[_, fact] : mergedFact) {
+            newReport.facts.push_back(std::move(fact));
+        }
+
+        result.push_back(std::move(newReport));
+    }
+
     return result;
+}
+
+void FinancialService::sortByFilingDate(
+    std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear) {
+    for (auto &[year, report] : reportsGroupedByYear) {
+        std::sort(report.begin(), report.end(),
+                  [](const db::model::FinancialReport &a, const db::model::FinancialReport &b) {
+                      return a.filing.filedDate < b.filing.filedDate;
+                  });
+    }
 }
 
 //  P/E ratio is calculated with diluted EPS
