@@ -41,8 +41,12 @@ std::string computeSHA256(const std::string &filename) {
 }
 
 std::filesystem::path getDataDirectory() {
-    std::filesystem::path dataDir = "/var/lib/stockfinances";
-    // std::filesystem::path dataDir = "../data";
+    std::filesystem::path dataDir;
+    if (const char *env_p = std::getenv("STOCK_DATA_DIR")) {
+        dataDir = env_p;
+    } else {
+        dataDir = "../data";
+    }
     std::filesystem::create_directories(dataDir);
     return dataDir;
 }
