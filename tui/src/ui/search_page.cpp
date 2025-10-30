@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cctype>
 #include <ncurses.h>
+#include <queue>
 #include <rapidfuzz/fuzz.hpp>
+#include <vector>
 
 SearchPage::SearchPage(Application &app) : app(app), refreshNeeded(true), companyListSize(LINES - 2) {
     companies = app.getCompanies();
@@ -65,23 +67,34 @@ std::vector<Company> SearchPage::filterCompanies() const {
     if (query.empty())
         return companies;
 
-    std::vector<std::pair<Company, int>> scored(companies.size());
+    auto cmp = [](const auto &a, const auto &b) { return a.second < b.second; };
+    std::priority_queue<std::pair<Company, int>, std::vector<std::pair<Company, int>>, decltype(cmp)> scored(cmp);
+
+    // std::vector<std::pair<Company, int>> scored(companies.size());
     std::string queryLower = query;
     std::transform(queryLower.begin(), queryLower.end(), queryLower.begin(), ::tolower);
     for (const auto &c : companies) {
-        int score = rapidfuzz::fuzz::partial_ratio(queryLower, c.queryString);
-        scored.emplace_back(c, score);
+        int score = rapidfuzz::fuzz::token_set_ratio(queryLower, c.queryString);
+        if ((int)scored.size() < companyListSize) {
+            scored.emplace(c, score);
+        } else if (score > scored.top().second) {
+            scored.pop();
+            scored.emplace(c, score);
+        }
     }
 
-    std::sort(scored.begin(), scored.end(), [](auto &a, auto &b) { return a.second > b.second; });
-
+    // std::sort(scored.begin(), scored.end(), [](auto &a, auto &b) { return a.second > b.second; });
+    //
     std::vector<Company> result(companyListSize);
-    for (int i = 0; i < companyListSize; ++i) {
-        result[i] = scored[i].first;
+    for (int i = 0; i < companyListSize || !scored.empty(); ++i) {
+        result[i] = scored.top().first;
+        scored.pop();
     }
-    // std::vector<Company> result;
-    // for (auto &[company, _] : scored)
-    //     result.push_back(company);
+
+    // std::vector<Company> result(companyListSize);
+    // for (int i = 0; i < companyListSize; ++i) {
+    //     result[i] = scored[i].first;
+    // }
 
     return result;
 }
