@@ -14,7 +14,7 @@ class ApiClient {
     ApiClient() = default;
 
     std::vector<Company> getCompanies();
-    std::string getCompaniesAnnualFinancials(const std::string &cik, int limit);
+    CompanyFinancials getCompaniesAnnualFinancials(const std::string &cik, int limit);
 
   private:
     static size_t writeCallbackJson(void *contents, size_t size, size_t nmemb, std::string *output);

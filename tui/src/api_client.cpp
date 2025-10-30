@@ -1,5 +1,7 @@
 #include "api_client.h"
+#include "models.h"
 #include <string>
+#include <vector>
 
 size_t ApiClient::writeCallbackJson(void *contents, size_t size, size_t nmemb, std::string *output) {
     size_t totalSize = size * nmemb;
@@ -13,10 +15,11 @@ std::vector<Company> ApiClient::getCompanies() {
     return j.get<std::vector<Company>>();
 }
 
-std::string ApiClient::getCompaniesAnnualFinancials(const std::string &cik, int limit) {
+CompanyFinancials ApiClient::getCompaniesAnnualFinancials(const std::string &cik, int limit) {
     std::string limitStr = std::to_string(limit);
     std::string url = "http://10.0.0.210:8080/companies/" + cik + "/financials?period=annual&limit=" + limitStr;
-    return callAPI(url);
+    json j = json::parse(callAPI(url));
+    return j.get<CompanyFinancials>();
 }
 
 std::string ApiClient::callAPI(const std::string &url) {
