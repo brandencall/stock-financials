@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -MMD -MP 
+CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -Iexternal/rapidfuzz-cpp/include -MMD -MP 
 LIBS = -lncurses -lcurl
 
 # Directories
@@ -8,14 +8,11 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
-# Binaries
 TARGET = $(BIN_DIR)/tui
 
 # Sources
 SRCS = $(shell find $(SRC_DIR) -name '*.cpp') 
-
-OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
-
+OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS)) 
 DEPS = $(OBJECTS:.o=.d)
 
 # Targets

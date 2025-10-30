@@ -18,27 +18,22 @@ void Application::initUi() {
 void Application::run() {
     nodelay(stdscr, TRUE);
     int ch;
-    bool quit = false;
 
-    while (!quit) {
-        ch = getch();
-        if (ch == 'q') {
-            quit = true;
-            break;
-        }
-        if (ch != ERR) {
+    while ((ch = getch()) != 'q') {
+        if (currentPage->needsRefresh()) {
+            clear();
+            currentPage->handleInput(ch);
+            currentPage->render();
+            refresh();
+        } else {
             currentPage->handleInput(ch);
         }
-        clear();
-        currentPage->render();
-        refresh();
 
-        if (auto *search = dynamic_cast<SearchPage *>(currentPage.get())) {
-            if (search->isCompanySelected()) {
-                switchToCompanyPage(search->selectedCompany());
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(32));
+        //if (auto *search = dynamic_cast<SearchPage *>(currentPage.get())) {
+        //    if (search->isCompanySelected()) {
+        //        switchToCompanyPage(search->selectedCompany());
+        //    }
+        //}
     }
 }
 
