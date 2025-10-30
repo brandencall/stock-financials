@@ -31,12 +31,6 @@ void Application::run() {
         if (ch == '/') {
             switchToSearchPage();
         }
-
-        // if (auto *search = dynamic_cast<SearchPage *>(currentPage.get())) {
-        //     if (search->isCompanySelected()) {
-        //         switchToCompanyPage(search->selectedCompany());
-        //     }
-        // }
     }
 }
 

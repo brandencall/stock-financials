@@ -17,4 +17,5 @@ class CompanyPage : public Page {
     Application &app;
     Company company;
     bool refreshNeeded;
+    std::string companyData;
 };

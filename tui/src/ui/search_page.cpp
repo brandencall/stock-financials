@@ -8,6 +8,9 @@
 #include <vector>
 
 SearchPage::SearchPage(Application &app) : app(app), refreshNeeded(true), companyListSize(LINES - 2) {
+    clear();
+    printw("Getting companies...");
+    refresh();
     companies = app.getCompanies();
 }
 
