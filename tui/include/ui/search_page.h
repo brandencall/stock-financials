@@ -31,4 +31,5 @@ class SearchPage : public Page {
     Company company;
 
     std::vector<Company> filterCompanies() const;
+    double scoreCompany(const std::string &queryLower, const Company &c) const;
 };

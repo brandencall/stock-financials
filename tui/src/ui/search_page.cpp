@@ -68,13 +68,12 @@ std::vector<Company> SearchPage::filterCompanies() const {
         return companies;
 
     auto cmp = [](const auto &a, const auto &b) { return a.second < b.second; };
-    std::priority_queue<std::pair<Company, int>, std::vector<std::pair<Company, int>>, decltype(cmp)> scored(cmp);
+    std::priority_queue<std::pair<Company, double>, std::vector<std::pair<Company, double>>, decltype(cmp)> scored(cmp);
 
-    // std::vector<std::pair<Company, int>> scored(companies.size());
     std::string queryLower = query;
     std::transform(queryLower.begin(), queryLower.end(), queryLower.begin(), ::tolower);
     for (const auto &c : companies) {
-        int score = rapidfuzz::fuzz::token_set_ratio(queryLower, c.queryString);
+        double score = scoreCompany(queryLower, c);
         if ((int)scored.size() < companyListSize) {
             scored.emplace(c, score);
         } else if (score > scored.top().second) {
@@ -83,20 +82,26 @@ std::vector<Company> SearchPage::filterCompanies() const {
         }
     }
 
-    // std::sort(scored.begin(), scored.end(), [](auto &a, auto &b) { return a.second > b.second; });
-    //
     std::vector<Company> result(companyListSize);
     for (int i = 0; i < companyListSize || !scored.empty(); ++i) {
         result[i] = scored.top().first;
         scored.pop();
     }
 
-    // std::vector<Company> result(companyListSize);
-    // for (int i = 0; i < companyListSize; ++i) {
-    //     result[i] = scored[i].first;
-    // }
-
     return result;
+}
+
+double SearchPage::scoreCompany(const std::string &queryLower, const Company &c) const {
+    using namespace rapidfuzz::fuzz;
+
+    std::string tickerLower = c.ticker;
+    std::transform(tickerLower.begin(), tickerLower.end(), tickerLower.begin(), ::tolower);
+    std::string titleLower = c.title;
+    std::transform(titleLower.begin(), titleLower.end(), titleLower.begin(), ::tolower);
+
+    int scoreTicker = rapidfuzz::fuzz::ratio(queryLower, tickerLower);
+    int scoreTitle = rapidfuzz::fuzz::token_set_ratio(queryLower, titleLower);
+    return std::max(scoreTicker, scoreTitle);
 }
 
 bool SearchPage::needsRefresh() const { return refreshNeeded; }
