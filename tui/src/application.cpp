@@ -1,8 +1,7 @@
 #include "application.h"
-#include "ui/compnay_page.h"
+#include "ui/company_page.h"
 #include "ui/search_page.h"
 #include <ncurses.h>
-#include <thread>
 
 Application::Application(ApiClient &apiClient) : apiClient(apiClient) {}
 
@@ -29,11 +28,15 @@ void Application::run() {
             currentPage->handleInput(ch);
         }
 
-        //if (auto *search = dynamic_cast<SearchPage *>(currentPage.get())) {
-        //    if (search->isCompanySelected()) {
-        //        switchToCompanyPage(search->selectedCompany());
-        //    }
-        //}
+        if (ch == '/') {
+            switchToSearchPage();
+        }
+
+        // if (auto *search = dynamic_cast<SearchPage *>(currentPage.get())) {
+        //     if (search->isCompanySelected()) {
+        //         switchToCompanyPage(search->selectedCompany());
+        //     }
+        // }
     }
 }
 
@@ -41,8 +44,11 @@ void Application::shutdownUi() { endwin(); }
 
 void Application::switchToSearchPage() { currentPage = std::make_unique<SearchPage>(*this); }
 
-void Application::switchToCompanyPage(Company &selectedCompany) {
+void Application::switchToCompanyPage(const Company &selectedCompany) {
     currentPage = std::make_unique<CompanyPage>(*this, selectedCompany);
+    clear();
+    currentPage->render();
+    refresh();
 }
 
 const std::vector<Company> &Application::getCompanies() {

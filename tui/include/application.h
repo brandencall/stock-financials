@@ -19,6 +19,7 @@ class Application {
 
     ApiClient &getApiClient() { return apiClient; }
     const std::vector<Company> &getCompanies();
+    void switchToCompanyPage(const Company &company);
 
   private:
     ApiClient &apiClient;
@@ -29,5 +30,4 @@ class Application {
     std::unique_ptr<Page> currentPage;
 
     void switchToSearchPage();
-    void switchToCompanyPage(Company &company);
 };

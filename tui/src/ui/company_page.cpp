@@ -1,16 +1,12 @@
+#include "ui/company_page.h"
 #include "application.h"
-#include "ui/compnay_page.h"
 
-CompanyPage::CompanyPage(Application &app, Company &company) : app(app), company(company) {
+CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), company(company), refreshNeeded(false) {
     // Need to call out to the api here
 }
 
-void CompanyPage::render() {
-    printw("This is the search page");
-    refresh();
-}
+void CompanyPage::render() { mvprintw(0, 0, "This is company page for: %s", company.title.c_str()); }
 
-void CompanyPage::handleInput(int ch) {
-    printw("%s", std::to_string(ch).c_str());
-    refresh();
-}
+void CompanyPage::handleInput(int ch) {}
+
+bool CompanyPage::needsRefresh() const { return refreshNeeded; }

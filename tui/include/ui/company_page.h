@@ -8,11 +8,13 @@ class Application;
 
 class CompanyPage : public Page {
   public:
-    explicit CompanyPage(Application &app, Company &company);
+    explicit CompanyPage(Application &app, const Company &company);
     void render() override;
     void handleInput(int ch) override;
+    bool needsRefresh() const override;
 
   private:
     Application &app;
-    Company &company;
+    Company company;
+    bool refreshNeeded;
 };

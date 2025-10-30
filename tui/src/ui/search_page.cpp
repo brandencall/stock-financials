@@ -18,8 +18,10 @@ void SearchPage::render() {
     int maxDisplay = std::min((int)filtered.size(), companyListSize);
 
     for (int i = 0; i < maxDisplay; ++i) {
-        if (i == selectedIndex)
+        if (i == selectedIndex) {
             attron(A_REVERSE);
+            selectedCompany = filtered[i];
+        }
         mvprintw(i + 2, 2, "%s - %s", filtered[i].ticker.c_str(), filtered[i].title.c_str());
         if (i == selectedIndex)
             attroff(A_REVERSE);
@@ -42,7 +44,7 @@ void SearchPage::handleInput(int ch) {
         }
         break;
     case 10: // Enter
-        // In future: return selected company to application
+        app.switchToCompanyPage(selectedCompany);
         break;
     case KEY_BACKSPACE:
     case 127:

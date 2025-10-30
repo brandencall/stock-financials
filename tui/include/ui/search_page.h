@@ -16,9 +16,6 @@ class SearchPage : public Page {
     void handleInput(int ch) override;
     bool needsRefresh() const override;
 
-    bool isCompanySelected() const { return selected; }
-    Company &selectedCompany() { return company; }
-
   private:
     Application &app;
     std::string query;
@@ -28,7 +25,7 @@ class SearchPage : public Page {
 
     int selectedIndex = 0;
     bool selected = false;
-    Company company;
+    Company selectedCompany;
 
     std::vector<Company> filterCompanies() const;
     double scoreCompany(const std::string &queryLower, const Company &c) const;
