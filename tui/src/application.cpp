@@ -23,7 +23,6 @@ void Application::run() {
             clear();
             currentPage->handleInput(ch);
             currentPage->render();
-            refresh();
         } else {
             currentPage->handleInput(ch);
         }
@@ -40,9 +39,8 @@ void Application::switchToSearchPage() { currentPage = std::make_unique<SearchPa
 
 void Application::switchToCompanyPage(const Company &selectedCompany) {
     currentPage = std::make_unique<CompanyPage>(*this, selectedCompany);
-    clear();
+    //clear();
     currentPage->render();
-    refresh();
 }
 
 const std::vector<Company> &Application::getCompanies() {

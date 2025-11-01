@@ -92,3 +92,4 @@ inline void from_json(const nlohmann::json &j, CompanyFinancials &cf) {
     j.at("company").get_to(cf.company);
     j.at("reports").get_to(cf.reports);
 }
+
