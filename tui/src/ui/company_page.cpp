@@ -17,28 +17,38 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     mainWin = newwin(0, 0, 0, 0);
     headerWin = derwin(mainWin, headerHeight, headerWidth, headerY, headerX);
     revenueBarWin = derwin(mainWin, revenueBarHeight, revenueBarWidth, revenueBarY, revenueBarX);
+    operatingIncomeWin =
+        derwin(mainWin, operatingIncomeHeight, operatingIncomeWidth, operatingIncomeY, operatingIncomeX);
 }
 
 CompanyPage::~CompanyPage() {
     delwin(mainWin);
     delwin(headerWin);
     delwin(revenueBarWin);
+    delwin(operatingIncomeWin);
 }
 
 void CompanyPage::render() {
     box(mainWin, 1, 0);
     renderTitle();
+
     if (companyData.reports.empty()) {
         renderNoDataError();
         wrefresh(mainWin);
         return;
     }
+
     box(revenueBarWin, 1, 0);
+    box(operatingIncomeWin, 1, 0);
+
     renderHeader();
     renderRevenueBar();
+    renderOperatingIncomeBar();
+
     wrefresh(mainWin);
     wrefresh(headerWin);
     wrefresh(revenueBarWin);
+    wrefresh(operatingIncomeWin);
 }
 
 void CompanyPage::renderRevenueBar() {
@@ -64,6 +74,33 @@ void CompanyPage::renderRevenueBar() {
     mvwprintw(revenueBarWin, 0, 1, " %s ", title.c_str());
     wattroff(revenueBarWin, A_BOLD);
     UiUtils::renderHorizontalBarChart(revenueBarWin, revenuePoints, 1, 2);
+}
+
+void CompanyPage::renderOperatingIncomeBar() {
+    std::vector<DataPoint> operatingIncomePoints;
+    std::string currency;
+    for (int i = 0; i < companyData.reports.size(); ++i) {
+        FinancialReport report = companyData.reports[i];
+        for (int j = 0; j < report.facts.size(); ++j) {
+            FinancialFact fact = report.facts[j];
+            if (fact.tag == "Operating Income") {
+                currency = currency.empty() ? fact.unit : currency;
+                double operatingIncome = fact.value;
+                double growth = 0;
+                if (i > 0 && operatingIncomePoints[i - 1].value > 0) {
+                    growth =
+                        ((operatingIncome - operatingIncomePoints[i - 1].value) / operatingIncomePoints[i - 1].value) *
+                        100.0;
+                }
+                operatingIncomePoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
+            }
+        }
+    }
+    std::string title = "Operating Income (USD)";
+    wattron(operatingIncomeWin, A_BOLD);
+    mvwprintw(operatingIncomeWin, 0, 1, " %s ", title.c_str());
+    wattroff(operatingIncomeWin, A_BOLD);
+    UiUtils::renderHorizontalBarChart(operatingIncomeWin, operatingIncomePoints, 1, 2);
 }
 
 void CompanyPage::renderTitle() {

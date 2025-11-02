@@ -1,7 +1,6 @@
 #include "ui/ui_utils.h"
 #include <ncurses.h>
 
-// TODO: Refactor needed... This is not pretty
 void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, int startY, int startX) {
     if (points.empty())
         return;
@@ -16,6 +15,27 @@ void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint>
         return;
 
     int totalWidth = getmaxx(win) * 0.65;
+    int zeroPos = getZeroPosition(startX, totalWidth, minValue, maxValue);
+
+    for (size_t y = 0; y < points.size(); ++y) {
+        const auto &p = points[y];
+        std::string label = p.timePeriod + " | ";
+        mvwprintw(win, startY + y, startX, "%s", label.c_str());
+        
+        int endPos = startX + static_cast<int>((p.value - minValue) / (maxValue - minValue) * totalWidth);
+        printHorizontalBar(win, zeroPos, endPos, startX, startY + y, p.value, label.size());
+
+        mvwprintw(win, startY + y, startX + totalWidth + 6, "| %s (%+5.1f%%)",
+                  UiUtils::abbreviateNumber(p.value).c_str(), p.percentageChange);
+    }
+
+    // Draw the zero line
+    if (minValue <= 0) {
+        mvwvline(win, startY, zeroPos, ACS_VLINE, points.size());
+    }
+}
+
+int UiUtils::getZeroPosition(int startX, int totalWidth, double minValue, double maxValue) {
     int zeroPos = 0;
     if (minValue >= 0) {
         zeroPos = startX;
@@ -24,29 +44,24 @@ void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint>
     } else {
         zeroPos = startX + static_cast<int>((0 - minValue) / (maxValue - minValue) * totalWidth);
     }
+    return zeroPos;
+}
 
-    for (size_t y = 0; y < points.size(); ++y) {
-        const auto &p = points[y];
-        std::string label = p.timePeriod + " | ";
-        mvwprintw(win, startY + y, startX, "%s", label.c_str());
-
-        int xPos = startX + static_cast<int>((p.value - minValue) / (maxValue - minValue) * totalWidth);
-        if (p.value >= 0) {
-            int barLength = std::max(1, xPos - zeroPos);
-            for (int x = 0; x < barLength; ++x)
-                mvwprintw(win, startY + y, label.size() + zeroPos + x, "\u25A0");
-        } else {
-            int barLength = std::max(1, xPos - zeroPos);
-            for (int x = 0; x < barLength; ++x)
-                mvwprintw(win, startY + y, label.size() + zeroPos - x, "\u25A0");
-        }
-        mvwprintw(win, startY + y, startX + totalWidth + 6, "| %s (%+5.1f%%)",
-                  UiUtils::abbreviateNumber(p.value).c_str(), p.percentageChange);
-    }
-
-    // Draw the zero line
-    if (minValue <= 0) {
-        mvwvline(win, startY - 1, zeroPos, ACS_VLINE, points.size() + 1);
+void UiUtils::printHorizontalBar(WINDOW *win, int zeroPos, int endPos, int startX, int yPos, double value,
+                                 int labelSize) {
+    int barLength = std::max(1, endPos - zeroPos);
+    // No negative values in graph
+    if (zeroPos == startX && value >= 0) {
+        for (int x = 0; x < barLength; ++x)
+            mvwprintw(win, yPos, labelSize + zeroPos + x, "\u25A0");
+        // Graph contains negative values but current value is positive
+    } else if (value >= 0) {
+        for (int x = 0; x < barLength; ++x)
+            mvwprintw(win, yPos, zeroPos + x, "\u25A0");
+        // Current value is negative
+    } else {
+        for (int x = 0; x < barLength; ++x)
+            mvwprintw(win, yPos, zeroPos - x - 1, "\u25A0");
     }
 }
 

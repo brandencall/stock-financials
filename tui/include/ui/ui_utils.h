@@ -18,4 +18,9 @@ class UiUtils {
     static void renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, int startY, int startX);
     static std::string abbreviateNumber(double num);
     static int getCenterForString(WINDOW *win, const std::string &str);
+
+  private:
+    static int getZeroPosition(int startX, int totalWidth, double minValue, double maxValue);
+    static void printHorizontalBar(WINDOW *win, int zeroPos, int endPos, int startX, int yPos, double value,
+                                   int labelSize);
 };

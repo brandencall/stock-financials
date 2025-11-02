@@ -41,17 +41,24 @@ class CompanyPage : public Page {
     int headerX = 0;
 
     int revenueBarHeight = 7;
-    int revenueBarWidth = COLS / 2;
+    int revenueBarWidth = (COLS / 2) - 1;
     int revenueBarY = 4;
     int revenueBarX = 1;
+
+    int operatingIncomeHeight = 7;
+    int operatingIncomeWidth = (COLS / 2) - 1;
+    int operatingIncomeY = 4;
+    int operatingIncomeX = (COLS / 2) + 1;
 
     WINDOW *mainWin;
     WINDOW *headerWin;
     WINDOW *revenueBarWin;
+    WINDOW *operatingIncomeWin;
 
     void renderTitle();
     void renderNoDataError();
     void renderHeader();
     void renderRevenueBar();
+    void renderOperatingIncomeBar();
     CompanyHeaderData getHeaderData();
 };
