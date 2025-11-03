@@ -15,7 +15,8 @@ struct DataPoint {
 
 class UiUtils {
   public:
-    static void renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, int startY, int startX);
+    static void renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, float barRatio, int startY,
+                                         int startX);
     static std::string abbreviateNumber(double num);
     static int getCenterForString(WINDOW *win, const std::string &str);
 

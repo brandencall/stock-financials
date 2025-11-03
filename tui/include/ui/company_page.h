@@ -50,15 +50,29 @@ class CompanyPage : public Page {
     int operatingIncomeY = 4;
     int operatingIncomeX = (COLS / 2) + 1;
 
+    int epsHeight = 7;
+    int epsWidth = (COLS / 4) - 1;
+    int epsY = 12;
+    int epsX = 1;
+
+    int peHeight = 7;
+    int peWidth = (COLS / 4) - 1;
+    int peY = 12;
+    int peX = (COLS / 4) + 1;
+
     WINDOW *mainWin;
     WINDOW *headerWin;
     WINDOW *revenueBarWin;
     WINDOW *operatingIncomeWin;
+    WINDOW *epsWin;
+    WINDOW *peWin;
 
     void renderTitle();
     void renderNoDataError();
     void renderHeader();
     void renderRevenueBar();
     void renderOperatingIncomeBar();
+    void renderEpsBar();
+    void renderPeBar();
     CompanyHeaderData getHeaderData();
 };

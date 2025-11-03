@@ -1,7 +1,8 @@
 #include "ui/ui_utils.h"
 #include <ncurses.h>
 
-void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, int startY, int startX) {
+void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, float barRatio, int startY,
+                                       int startX) {
     if (points.empty())
         return;
 
@@ -14,8 +15,10 @@ void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint>
     if (minValue == maxValue)
         return;
 
-    int totalWidth = getmaxx(win) * 0.65;
+    int totalWidth = getmaxx(win) * barRatio;
     int zeroPos = getZeroPosition(startX, totalWidth, minValue, maxValue);
+    int labelSize = points[0].timePeriod.size() + 3;
+    zeroPos += labelSize;
 
     for (size_t y = 0; y < points.size(); ++y) {
         const auto &p = points[y];
@@ -57,7 +60,7 @@ void UiUtils::printHorizontalBar(WINDOW *win, int zeroPos, int endPos, int start
         // Graph contains negative values but current value is positive
     } else if (value >= 0) {
         for (int x = 0; x < barLength; ++x)
-            mvwprintw(win, yPos, zeroPos + x, "\u25A0");
+            mvwprintw(win, yPos, zeroPos + x + 1, "\u25A0");
         // Current value is negative
     } else {
         for (int x = zeroPos - 1; x > endPos + labelSize; --x)
