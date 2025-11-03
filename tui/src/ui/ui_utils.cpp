@@ -11,7 +11,7 @@ void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint>
     double maxValue = maxIt->value;
 
     // Avoid division by zero
-    if (maxValue == minValue)
+    if (minValue == maxValue)
         return;
 
     int totalWidth = getmaxx(win) * 0.65;
@@ -21,7 +21,7 @@ void UiUtils::renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint>
         const auto &p = points[y];
         std::string label = p.timePeriod + " | ";
         mvwprintw(win, startY + y, startX, "%s", label.c_str());
-        
+
         int endPos = startX + static_cast<int>((p.value - minValue) / (maxValue - minValue) * totalWidth);
         printHorizontalBar(win, zeroPos, endPos, startX, startY + y, p.value, label.size());
 
@@ -60,8 +60,8 @@ void UiUtils::printHorizontalBar(WINDOW *win, int zeroPos, int endPos, int start
             mvwprintw(win, yPos, zeroPos + x, "\u25A0");
         // Current value is negative
     } else {
-        for (int x = 0; x < barLength; ++x)
-            mvwprintw(win, yPos, zeroPos - x - 1, "\u25A0");
+        for (int x = zeroPos - 1; x > endPos + labelSize; --x)
+            mvwprintw(win, yPos, x, "\u25A0");
     }
 }
 
