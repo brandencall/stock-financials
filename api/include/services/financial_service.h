@@ -31,8 +31,14 @@ class FinancialService {
     std::vector<db::model::FinancialReport> getFinancialReports(std::vector<db::model::Filing> filings,
                                                                 std::string period);
 
-    std::vector<db::model::FinancialReport> consolidateFinancialReports(
-        std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear);
+    bool filingIsAmendment(const db::model::Filing &filing);
+
+    db::model::FinancialReport *findAssociatedFinancialReport(std::vector<db::model::FinancialReport> &reports,
+                                                              const db::model::Filing &filing);
+
+    void updateFinancialReport(db::model::FinancialReport &reportToUpdate,
+                               const db::model::FinancialReport &amendmentReport);
+
     void
     sortByFilingDate(std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear);
 

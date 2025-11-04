@@ -13,7 +13,8 @@ std::filesystem::path getDataFile() {
 
 int main() {
     // std::filesystem::path dataFile= "../data/stock_data.db";
-    std::filesystem::path dataFile = "/var/lib/stockfinances/stock_data.db";
+    //std::filesystem::path dataFile = "/var/lib/stockfinances/stock_data.db";
+    std::filesystem::path dataFile = getDataFile();
     db::Database db(dataFile);
     Server server(db);
     server.registerControllers();

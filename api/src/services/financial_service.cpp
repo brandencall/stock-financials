@@ -1,6 +1,8 @@
 #include "services/financial_service.h"
 #include "models/financial_fact.h"
 #include "models/financial_report.h"
+#include <iterator>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -25,18 +27,23 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
 
     std::vector<db::model::Filing> filings;
     if (period == "annual") {
-        filings = filingRepo.getAnnualFilingsForCIK(cik, limit);
+        filings = filingRepo.getAnnualFilingsForCIK(cik);
     } else {
-        filings = filingRepo.getQuarterlyFilingsForCIK(cik, limit);
+        filings = filingRepo.getQuarterlyFilingsForCIK(cik);
     }
 
-    result.reports = getFinancialReports(filings, period);
+    std::vector<db::model::FinancialReport> reports = getFinancialReports(filings, period);
+    if ((int)reports.size() > limit) {
+        std::copy(reports.end() - limit, reports.end(), std::back_inserter(result.reports));
+    } else {
+        result.reports = reports;
+    }
     return result;
 }
 
 std::vector<db::model::FinancialReport> FinancialService::getFinancialReports(std::vector<db::model::Filing> filings,
                                                                               std::string period) {
-    std::unordered_map<std::string, std::vector<db::model::FinancialReport>> reportsGroupedByYear;
+    std::vector<db::model::FinancialReport> result;
 
     for (const auto &filing : filings) {
         db::model::FinancialReport financialReport;
@@ -47,37 +54,49 @@ std::vector<db::model::FinancialReport> FinancialService::getFinancialReports(st
             financialReport.stockPrice = stockPrice.value();
             addFactPE(financialReport.facts, financialReport.stockPrice);
         }
-        std::string key = filing.fp + std::to_string(filing.fy);
-        reportsGroupedByYear[key].push_back(std::move(financialReport));
+        if (filingIsAmendment(filing)) {
+            db::model::FinancialReport *foundReport = findAssociatedFinancialReport(result, filing);
+            if (foundReport == nullptr) {
+                result.push_back(std::move(financialReport));
+            } else {
+                updateFinancialReport(*foundReport, financialReport);
+            }
+        } else {
+            result.push_back(std::move(financialReport));
+        }
     }
-
-    return consolidateFinancialReports(reportsGroupedByYear);
+    return result;
 }
 
-std::vector<db::model::FinancialReport> FinancialService::consolidateFinancialReports(
-    std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear) {
-    std::vector<db::model::FinancialReport> result;
-    sortByFilingDate(reportsGroupedByYear);
-    for (auto &[_, report] : reportsGroupedByYear) {
-        std::unordered_map<std::string, db::model::FinancialFact> mergedFact;
-        for (const auto &report : report) {
-            for (const auto &fact : report.facts) {
-                std::string key = fact.sourceTag + fact.unit + fact.startDate + fact.endDate;
-                mergedFact[key] = fact;
-            }
-        }
-        db::model::FinancialReport newReport;
-        newReport.filing = report[0].filing;
-        newReport.stockPrice = report[0].stockPrice;
-        newReport.facts.reserve(mergedFact.size());
-        for (auto &[_, fact] : mergedFact) {
-            newReport.facts.push_back(std::move(fact));
-        }
-
-        result.push_back(std::move(newReport));
+bool FinancialService::filingIsAmendment(const db::model::Filing &filing) {
+    std::string form = filing.form;
+    if (form.length() > 2) {
+        std::string lastTwoChars = form.substr(form.length() - 2);
+        if (lastTwoChars == "/A" || lastTwoChars == "/a")
+            return true;
     }
+    return false;
+}
 
-    return result;
+db::model::FinancialReport *
+FinancialService::findAssociatedFinancialReport(std::vector<db::model::FinancialReport> &reports,
+                                                const db::model::Filing &filing) {
+    for (auto &report : reports) {
+        if (report.filing.fp == filing.fp && report.filing.fy == filing.fy)
+            return &report;
+    }
+    return nullptr;
+}
+
+void FinancialService::updateFinancialReport(db::model::FinancialReport &reportToUpdate,
+                                             const db::model::FinancialReport &amendmentReport) {
+    for (auto &fact : reportToUpdate.facts) {
+        auto amendmentFact = std::find_if(amendmentReport.facts.begin(), amendmentReport.facts.end(),
+                                          [&](const db::model::FinancialFact &ff) { return ff.tag == fact.tag; });
+        if (amendmentFact != amendmentReport.facts.end()) {
+            fact = *amendmentFact;
+        }
+    }
 }
 
 void FinancialService::sortByFilingDate(
