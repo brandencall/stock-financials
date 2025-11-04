@@ -96,6 +96,7 @@ std::vector<db::model::Filing> FilingRepository::getAnnualFilingsForCIK(const st
         SELECT filingId, accession, form, fy, fp, filed_date 
         FROM filings 
         WHERE cik = (?) AND fp = 'FY'
+        AND form IN ('10-K', '10-K/A', '20-F', '20-F/A', '40-F', '40-F/A')
         ORDER BY filed_date ASC
     )" << cik >>
         [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
@@ -117,6 +118,7 @@ std::vector<db::model::Filing> FilingRepository::getQuarterlyFilingsForCIK(const
         SELECT filingId, accession, form, fy, fp, filed_date 
         FROM filings 
         WHERE cik = (?) AND fp != 'FY'
+        AND form IN ('10-Q', '10-Q/A', '6-K', '6-K/A')
         ORDER BY filed_date ASC
     )" << cik >>
         [&](int filingId, std::string accession, std::string form, int fy, std::string fp, std::string filed_date) {
