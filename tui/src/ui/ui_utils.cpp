@@ -68,6 +68,45 @@ void UiUtils::printHorizontalBar(WINDOW *win, int zeroPos, int endPos, int start
     }
 }
 
+void UiUtils::renderCashBalanceBar(WINDOW *win, double cash, double debt, int startY, int startX) {
+    int winWidth = getmaxx(win);
+    // subtract 10 for cash and debt labels
+    int barWidth = winWidth - 10;
+    float ratioCash = cash / (cash + debt);
+    float ratioDebt = debt / (cash + debt);
+    int cashWidth = ratioCash * ((float)barWidth / 2);
+    int debtWidth = ratioDebt * ((float)barWidth / 2);
+
+    mvwprintw(win, startY, startX + 1, "Cash");
+    int cashBarOffset = 6;
+
+    for (int x = 0; x < barWidth / 2; ++x) {
+        if (x < cashWidth) {
+            mvwprintw(win, startY, startX + x + cashBarOffset, "\u25A0");
+        } else {
+            mvwprintw(win, startY, startX + x + cashBarOffset, "─");
+        }
+    }
+
+    mvwprintw(win, startY, winWidth - 6, "Debt");
+    int debtBarOffset = 8;
+    for (int x = winWidth - debtBarOffset, j = 0; x > barWidth / 2; --x, ++j) {
+        if (j < debtWidth) {
+            mvwprintw(win, startY, x, "\u25A0");
+        } else {
+            mvwprintw(win, startY, x, "─");
+        }
+    }
+
+    mvwprintw(win, startY, startX + (barWidth / 2) + cashBarOffset, "|");
+
+    mvwprintw(win, startY + 1, startX + cashBarOffset, "%s", UiUtils::abbreviateNumber(cash).c_str());
+    mvwprintw(win, startY + 1, winWidth - debtBarOffset, "%s", UiUtils::abbreviateNumber(debt).c_str());
+
+    std::string netCash = "Net Cash: " + UiUtils::abbreviateNumber(cash - debt);
+    mvwprintw(win, startY + 2, winWidth / 2 - (netCash.length() / 2), "%s", netCash.c_str());
+}
+
 std::string UiUtils::abbreviateNumber(double num) {
     double absNum = std::fabs(num);
     std::ostringstream oss;

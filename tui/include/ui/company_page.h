@@ -60,12 +60,18 @@ class CompanyPage : public Page {
     int peY = 12;
     int peX = (COLS / 4) + 1;
 
+    int cashToDebtHeight = 7;
+    int cashToDebtWidth = (COLS / 2) - 1;
+    int cashToDebtY = 12;
+    int cashToDebtX = (COLS / 2) + 1;
+
     WINDOW *mainWin;
     WINDOW *headerWin;
     WINDOW *revenueBarWin;
     WINDOW *operatingIncomeWin;
     WINDOW *epsWin;
     WINDOW *peWin;
+    WINDOW *cashToDebtWin;
 
     void renderTitle();
     void renderNoDataError();
@@ -74,5 +80,6 @@ class CompanyPage : public Page {
     void renderOperatingIncomeBar();
     void renderEpsBar();
     void renderPeBar();
+    void renderCashToDebtBar();
     CompanyHeaderData getHeaderData();
 };

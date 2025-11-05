@@ -17,6 +17,7 @@ class UiUtils {
   public:
     static void renderHorizontalBarChart(WINDOW *win, const std::vector<DataPoint> &points, float barRatio, int startY,
                                          int startX);
+    static void renderCashBalanceBar(WINDOW *win, double cash, double debt, int startY, int startX);
     static std::string abbreviateNumber(double num);
     static int getCenterForString(WINDOW *win, const std::string &str);
 

@@ -10,9 +10,6 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     printw("Fetching data...");
     refresh();
     companyData = app.getApiClient().getCompaniesAnnualFinancials(company.cik, 5);
-    std::sort(
-        companyData.reports.begin(), companyData.reports.end(),
-        [](const FinancialReport &a, const FinancialReport &b) { return a.filing.filedDate < b.filing.filedDate; });
 
     mainWin = newwin(0, 0, 0, 0);
     headerWin = derwin(mainWin, headerHeight, headerWidth, headerY, headerX);
@@ -20,7 +17,8 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     operatingIncomeWin =
         derwin(mainWin, operatingIncomeHeight, operatingIncomeWidth, operatingIncomeY, operatingIncomeX);
     epsWin = derwin(mainWin, epsHeight, epsWidth, epsY, epsX);
-    // peWin = derwin(mainWin, peHeight, peWidth, peY, peX);
+    peWin = derwin(mainWin, peHeight, peWidth, peY, peX);
+    cashToDebtWin = derwin(mainWin, cashToDebtHeight, cashToDebtWidth, cashToDebtY, cashToDebtX);
 }
 
 CompanyPage::~CompanyPage() {
@@ -29,7 +27,8 @@ CompanyPage::~CompanyPage() {
     delwin(revenueBarWin);
     delwin(operatingIncomeWin);
     delwin(epsWin);
-    // delwin(peWin);
+    delwin(peWin);
+    delwin(cashToDebtWin);
 }
 
 void CompanyPage::render() {
@@ -45,20 +44,23 @@ void CompanyPage::render() {
     box(revenueBarWin, 1, 0);
     box(operatingIncomeWin, 1, 0);
     box(epsWin, 1, 0);
-    // box(peWin, 1, 0);
+    box(peWin, 1, 0);
+    box(cashToDebtWin, 1, 0);
 
     renderHeader();
     renderRevenueBar();
     renderOperatingIncomeBar();
     renderEpsBar();
-    // renderPeBar();
+    renderPeBar();
+    renderCashToDebtBar();
 
     wrefresh(mainWin);
     wrefresh(headerWin);
     wrefresh(revenueBarWin);
     wrefresh(operatingIncomeWin);
     wrefresh(epsWin);
-    // wrefresh(peWin);
+    wrefresh(peWin);
+    wrefresh(cashToDebtWin);
 }
 
 void CompanyPage::renderRevenueBar() {
@@ -160,6 +162,34 @@ void CompanyPage::renderPeBar() {
     wattroff(peWin, A_BOLD);
     UiUtils::renderHorizontalBarChart(peWin, pePoints, 0.45, 1, 2);
 }
+
+void CompanyPage::renderCashToDebtBar() {
+    double cash = 0;
+    double debt = 0;
+    FinancialReport lastReport = companyData.reports[companyData.reports.size() - 1];
+    for (const auto &fact : lastReport.facts) {
+        if (fact.tag == "Cash And Cash Equivalents") {
+            cash = fact.value;
+        } else if (fact.tag == "Overall Debt") {
+            debt = fact.value;
+        }
+    }
+    if (debt == 0) {
+        for (const auto &fact : lastReport.facts) {
+            if (fact.tag == "Current Debt") {
+                debt += fact.value;
+            } else if (fact.tag == "Long Term Debt") {
+                debt += fact.value;
+            }
+        }
+    }
+    std::string title = "Cash To Debt";
+    wattron(cashToDebtWin, A_BOLD);
+    mvwprintw(cashToDebtWin, 0, 1, " %s ", title.c_str());
+    wattroff(cashToDebtWin, A_BOLD);
+    UiUtils::renderCashBalanceBar(cashToDebtWin, cash, debt, 2, 1);
+}
+
 void CompanyPage::renderTitle() {
     std::string title = company.title + " (" + company.ticker + ")";
     wattron(mainWin, A_BOLD);
