@@ -30,70 +30,64 @@ void CompanyController::getCompanies(const httplib::Request &, httplib::Response
 }
 
 void CompanyController::getCompany(const httplib::Request &req, httplib::Response &res) {
-    if (req.matches.size() > 1) {
-        std::string cik = req.matches[1];
-        std::optional<db::model::Company> company = companyService.getCompanyByCIK(cik);
-        if (company != std::nullopt) {
-            json j = company;
-            res.set_content(j.dump(), "application/json");
-        } else {
-            res.status = 404;
-            res.set_content(R"({"error": "Company does not exist"})", "application/json");
-        }
+    if (req.matches.size() <= 1) {
+        return sendError(res, 404, "Missing cik parameter");
+    }
+    std::string cik = req.matches[1];
+    std::optional<db::model::Company> company = companyService.getCompanyByCIK(cik);
+    if (company != std::nullopt) {
+        json j = company;
+        res.set_content(j.dump(), "application/json");
     } else {
         res.status = 404;
-        res.set_content(R"({"error": "Missing cik paramter"})", "application/json");
+        res.set_content(R"({"error": "Company does not exist"})", "application/json");
     }
 }
 
-// TODO: Refactor...
 void CompanyController::getFinancials(const httplib::Request &req, httplib::Response &res) {
-    if (req.matches.size() > 1) {
-        std::string cik = req.matches[1];
-        std::string period = "annual";
-        int limit = -1;
-        if (req.has_param("period")) {
-            period = req.get_param_value("period");
-        }
-        if (period != "annual" && period != "quarterly") {
-            res.status = 404;
-            res.set_content(R"({"error": "inproper period paramter"})", "application/json");
-            return;
-        }
-        if (req.has_param("limit")) {
-            try {
-                limit = std::stoi(req.get_param_value("limit"));
-            } catch (const std::invalid_argument &e) {
-                res.status = 404;
-                res.set_content(R"({"error": "Invalid limit paramter. Paramter must be an int"})", "application/json");
-                return;
-            } catch (const std::out_of_range &e) {
-                res.status = 404;
-                res.set_content(R"({"error": "Invalid limit paramter. Paramter must be an int"})", "application/json");
-                return;
-            }
-        }
+    if (req.matches.size() <= 1) {
+        return sendError(res, 404, "Missing cik paramter");
+    }
 
-        std::optional<db::model::CompanyFinancials> companyFinancials;
-        if (limit == -1) {
-            companyFinancials = financialService.getAllByCikAndPeriod(cik, period);
-        } else {
-            companyFinancials = financialService.getByCikAndPeriod(cik, period, limit);
-        }
+    std::string cik = req.matches[1];
+    std::string period = req.has_param("period") ? req.get_param_value("period") : "annual";
+    std::optional<int> limit = parseLimit(req);
 
-        if (companyFinancials != std::nullopt) {
-            json j = companyFinancials.value();
-            res.set_content(j.dump(), "application/json");
-            return;
-        } else {
-            res.status = 404;
-            res.set_content(R"({"error": "Company Financials doesn't exist..."})", "application/json");
-            return;
-        }
-    } else {
-        res.status = 404;
-        res.set_content(R"({"error": "Missing cik paramter"})", "application/json");
-        return;
+    if (period != "annual" && period != "quarterly") {
+        return sendError(res, 404, "Inproper period parameter");
+    }
+
+    if (!limit.has_value() && req.has_param("limit")) {
+        return sendError(res, 404, "Invalid limit parameter. Must be an integer");
+    }
+
+    std::optional<db::model::CompanyFinancials> companyFinancials =
+        limit.has_value() ? financialService.getByCikAndPeriod(cik, period, limit.value())
+                          : financialService.getAllByCikAndPeriod(cik, period);
+
+    if (!companyFinancials) {
+        return sendError(res, 404, "Company Financials doesn't exist...");
+    }
+
+    json j = *companyFinancials;
+    res.status = 200;
+    res.set_content(j.dump(), "application/json");
+}
+
+void CompanyController::sendError(httplib::Response &res, int status, const std::string &message) {
+    res.status = status;
+    json j = {{"error", message}};
+    res.set_content(j.dump(), "application/json");
+}
+
+std::optional<int> CompanyController::parseLimit(const httplib::Request &req) {
+    if (!req.has_param("limit"))
+        return std::nullopt;
+
+    try {
+        return std::stoi(req.get_param_value("limit"));
+    } catch (const std::exception &) {
+        return std::nullopt;
     }
 }
 
