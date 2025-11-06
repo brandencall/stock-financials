@@ -46,12 +46,12 @@ void CompanyController::getCompany(const httplib::Request &req, httplib::Respons
     }
 }
 
+// TODO: Refactor...
 void CompanyController::getFinancials(const httplib::Request &req, httplib::Response &res) {
-
     if (req.matches.size() > 1) {
         std::string cik = req.matches[1];
         std::string period = "annual";
-        int limit = 10;
+        int limit = -1;
         if (req.has_param("period")) {
             period = req.get_param_value("period");
         }
@@ -73,8 +73,14 @@ void CompanyController::getFinancials(const httplib::Request &req, httplib::Resp
                 return;
             }
         }
-        std::optional<db::model::CompanyFinancials> companyFinancials =
-            financialService.getByCikAndPeriod(cik, period, limit);
+
+        std::optional<db::model::CompanyFinancials> companyFinancials;
+        if (limit == -1) {
+            companyFinancials = financialService.getAllByCikAndPeriod(cik, period);
+        } else {
+            companyFinancials = financialService.getByCikAndPeriod(cik, period, limit);
+        }
+
         if (companyFinancials != std::nullopt) {
             json j = companyFinancials.value();
             res.set_content(j.dump(), "application/json");

@@ -15,8 +15,28 @@ FinancialService::FinancialService(db::repository::CompanyRepository companyRepo
                                    db::repository::StockPriceRepository stockRepo)
     : companyRepo(companyRepo), filingRepo(filingRepo), factRepo(factRepo), stockRepo(stockRepo) {};
 
+std::optional<db::model::CompanyFinancials> FinancialService::getAllByCikAndPeriod(const std::string &cik,
+                                                                                   const std::string &period) {
+    return getCompanyFinancials(cik, period);
+}
+
 std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(const std::string &cik,
                                                                                 const std::string &period, int limit) {
+    std::optional<db::model::CompanyFinancials> result = getCompanyFinancials(cik, period);
+    if (!result) {
+        return std::nullopt;
+    }
+
+    std::vector<db::model::FinancialReport> &reports = result->reports;
+    if (reports.size() > static_cast<size_t>(limit)) {
+        result->reports = {reports.end() - limit, reports.end()};
+    }
+
+    return result;
+}
+
+std::optional<db::model::CompanyFinancials> FinancialService::getCompanyFinancials(const std::string &cik,
+                                                                                   const std::string &period) {
     db::model::CompanyFinancials result;
     std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
     if (company == std::nullopt) {
@@ -32,12 +52,7 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
         filings = filingRepo.getQuarterlyFilingsForCIK(cik);
     }
 
-    std::vector<db::model::FinancialReport> reports = getFinancialReports(filings, period);
-    if ((int)reports.size() > limit) {
-        std::copy(reports.end() - limit, reports.end(), std::back_inserter(result.reports));
-    } else {
-        result.reports = reports;
-    }
+    result.reports = getFinancialReports(filings, period);
     return result;
 }
 
