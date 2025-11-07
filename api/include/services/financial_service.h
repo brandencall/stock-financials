@@ -9,7 +9,9 @@
 #include "repositories/filing_repository.h"
 #include "repositories/financial_fact_repository.h"
 #include "repositories/stock_price_repository.h"
+#include <map>
 #include <optional>
+#include <unordered_map>
 #include <vector>
 
 namespace service {
@@ -29,10 +31,12 @@ class FinancialService {
     db::repository::FilingRepository filingRepo;
     db::repository::FinancialFactRepository factRepo;
     db::repository::StockPriceRepository stockRepo;
+    std::unordered_map<std::string, std::string> factMap;
 
     std::optional<db::model::CompanyFinancials> getCompanyFinancials(const std::string &cik, const std::string &period,
                                                                      std::vector<std::string> &facts);
 
+    void normalizeFacts(std::vector<std::string> &facts);
     std::vector<db::model::FinancialReport> getFinancialReports(std::vector<db::model::Filing> filings,
                                                                 std::string period, std::vector<std::string> &facts);
 

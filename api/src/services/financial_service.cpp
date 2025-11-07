@@ -1,6 +1,7 @@
 #include "services/financial_service.h"
 #include "models/financial_fact.h"
 #include "models/financial_report.h"
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -12,9 +13,35 @@ FinancialService::FinancialService(db::repository::CompanyRepository companyRepo
                                    db::repository::FilingRepository filingRepo,
                                    db::repository::FinancialFactRepository factRepo,
                                    db::repository::StockPriceRepository stockRepo)
-    : companyRepo(companyRepo), filingRepo(filingRepo), factRepo(factRepo), stockRepo(stockRepo) {};
+    : companyRepo(companyRepo), filingRepo(filingRepo), factRepo(factRepo), stockRepo(stockRepo) {
 
-// TODO: Need to normalize facts
+    factMap = {{"revenue", "Revenue"},
+               {"gross profit", "Gross Profit"},
+               {"operating income", "Operating Income"},
+               {"net income", "Net Income"},
+               {"earnings per share basic", "Earnings Per Share Basic"},
+               {"earnings per share diluted", "Earnings Per Share Diluted"},
+               {"cash and cash equivalents", "Cash And Cash Equivalents"},
+               {"accounts receivable", "Accounts Receivable"},
+               {"cash flow", "Cash Flow"},
+               {"overall debt", "Overall Debt"},
+               {"current debt", "Current Debt"},
+               {"long term debt", "Long Term Debt"},
+               {"commercial paper", "Commercial Paper"},
+               {"stockholders' equity", "Stockholders' Equity"},
+               {"shares", "Shares"},
+               {"total assets", "Total Assets"},
+               {"current assets", "Current Assets"},
+               {"inventory", "Inventory"},
+               {"total liabilities", "Total Liabilities"},
+               {"current liabilities", "Current Liabilities"},
+               {"capital expenditures", "Capital Expenditures"},
+               {"goodwill", "Goodwill"},
+               {"intangible assets", "Intangible Assets"},
+               {"dividends per share", "Dividends Per Share"}};
+};
+
+// TODO: Need to handle derived facts (P/E, etc)
 std::optional<db::model::CompanyFinancials> FinancialService::getAllByCikAndPeriod(const std::string &cik,
                                                                                    const std::string &period,
                                                                                    std::vector<std::string> &facts) {
@@ -55,8 +82,19 @@ std::optional<db::model::CompanyFinancials> FinancialService::getCompanyFinancia
         filings = filingRepo.getQuarterlyFilingsForCIK(cik);
     }
 
+    normalizeFacts(facts);
     result.reports = getFinancialReports(filings, period, facts);
     return result;
+}
+
+void FinancialService::normalizeFacts(std::vector<std::string> &facts) {
+    for (auto &fact : facts) {
+        std::transform(fact.begin(), fact.end(), fact.begin(), ::tolower);
+        auto it = factMap.find(fact);
+        if (it != factMap.end()) {
+            fact = it->second;
+        }
+    }
 }
 
 std::vector<db::model::FinancialReport> FinancialService::getFinancialReports(std::vector<db::model::Filing> filings,
