@@ -1,5 +1,6 @@
 #include "controllers/company_controller.h"
 #include "models/company_financials.h"
+#include <sstream>
 #include <stdexcept>
 
 namespace controller {
@@ -52,6 +53,7 @@ void CompanyController::getFinancials(const httplib::Request &req, httplib::Resp
     std::string cik = req.matches[1];
     std::string period = req.has_param("period") ? req.get_param_value("period") : "annual";
     std::optional<int> limit = parseLimit(req);
+    std::vector<std::string> facts = parseFacts(req);
 
     if (period != "annual" && period != "quarterly") {
         return sendError(res, 404, "Inproper period parameter");
@@ -62,8 +64,8 @@ void CompanyController::getFinancials(const httplib::Request &req, httplib::Resp
     }
 
     std::optional<db::model::CompanyFinancials> companyFinancials =
-        limit.has_value() ? financialService.getByCikAndPeriod(cik, period, limit.value())
-                          : financialService.getAllByCikAndPeriod(cik, period);
+        limit.has_value() ? financialService.getByCikAndPeriod(cik, period, limit.value(), facts)
+                          : financialService.getAllByCikAndPeriod(cik, period, facts);
 
     if (!companyFinancials) {
         return sendError(res, 404, "Company Financials doesn't exist...");
@@ -89,6 +91,23 @@ std::optional<int> CompanyController::parseLimit(const httplib::Request &req) {
     } catch (const std::exception &) {
         return std::nullopt;
     }
+}
+
+std::vector<std::string> CompanyController::parseFacts(const httplib::Request &req) {
+    if (!req.has_param("facts"))
+        return {};
+
+    std::vector<std::string> result;
+    std::stringstream factsString(req.get_param_value("facts"));
+    std::string fact;
+    while (std::getline(factsString, fact, ',')) {
+        fact.erase(0, fact.find_first_not_of(" \t"));
+        fact.erase(fact.find_last_not_of(" \t") + 1);
+        if (!fact.empty()) {
+            result.push_back(fact);
+        }
+    }
+    return result;
 }
 
 } // namespace controller

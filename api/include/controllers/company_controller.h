@@ -26,5 +26,6 @@ class CompanyController {
     void getFinancials(const httplib::Request &req, httplib::Response &res);
     void sendError(httplib::Response &res, int status, const std::string &message);
     std::optional<int> parseLimit(const httplib::Request &req);
+    std::vector<std::string> parseFacts(const httplib::Request &req);
 };
 } // namespace controller

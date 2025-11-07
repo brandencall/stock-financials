@@ -1,7 +1,6 @@
 #include "services/financial_service.h"
 #include "models/financial_fact.h"
 #include "models/financial_report.h"
-#include <iterator>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -15,14 +14,17 @@ FinancialService::FinancialService(db::repository::CompanyRepository companyRepo
                                    db::repository::StockPriceRepository stockRepo)
     : companyRepo(companyRepo), filingRepo(filingRepo), factRepo(factRepo), stockRepo(stockRepo) {};
 
+// TODO: Need to normalize facts
 std::optional<db::model::CompanyFinancials> FinancialService::getAllByCikAndPeriod(const std::string &cik,
-                                                                                   const std::string &period) {
-    return getCompanyFinancials(cik, period);
+                                                                                   const std::string &period,
+                                                                                   std::vector<std::string> &facts) {
+    return getCompanyFinancials(cik, period, facts);
 }
 
 std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(const std::string &cik,
-                                                                                const std::string &period, int limit) {
-    std::optional<db::model::CompanyFinancials> result = getCompanyFinancials(cik, period);
+                                                                                const std::string &period, int limit,
+                                                                                std::vector<std::string> &facts) {
+    std::optional<db::model::CompanyFinancials> result = getCompanyFinancials(cik, period, facts);
     if (!result) {
         return std::nullopt;
     }
@@ -36,7 +38,8 @@ std::optional<db::model::CompanyFinancials> FinancialService::getByCikAndPeriod(
 }
 
 std::optional<db::model::CompanyFinancials> FinancialService::getCompanyFinancials(const std::string &cik,
-                                                                                   const std::string &period) {
+                                                                                   const std::string &period,
+                                                                                   std::vector<std::string> &facts) {
     db::model::CompanyFinancials result;
     std::optional<db::model::Company> company = companyRepo.getCompanyByCIK(cik);
     if (company == std::nullopt) {
@@ -52,18 +55,22 @@ std::optional<db::model::CompanyFinancials> FinancialService::getCompanyFinancia
         filings = filingRepo.getQuarterlyFilingsForCIK(cik);
     }
 
-    result.reports = getFinancialReports(filings, period);
+    result.reports = getFinancialReports(filings, period, facts);
     return result;
 }
 
 std::vector<db::model::FinancialReport> FinancialService::getFinancialReports(std::vector<db::model::Filing> filings,
-                                                                              std::string period) {
+                                                                              std::string period,
+                                                                              std::vector<std::string> &facts) {
     std::vector<db::model::FinancialReport> result;
 
     for (const auto &filing : filings) {
         db::model::FinancialReport financialReport;
         financialReport.filing = filing;
-        financialReport.facts = factRepo.getFilteredByFilingId(filing.filingId, period);
+        financialReport.facts = facts.size() > 0
+                                    ? factRepo.getFilteredByFilingIdAndFacts(filing.filingId, period, facts)
+                                    : factRepo.getAllFilteredByFilingId(filing.filingId, period);
+
         std::optional<db::model::StockPrice> stockPrice = stockRepo.getByFilingId(filing.filingId);
         if (stockPrice.has_value()) {
             financialReport.stockPrice = stockPrice.value();

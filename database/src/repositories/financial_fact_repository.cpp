@@ -74,40 +74,24 @@ std::vector<model::FinancialFact> FinancialFactRepository::getByFilingId(int fil
     return result;
 }
 
-std::vector<model::FinancialFact> FinancialFactRepository::getFilteredByFilingId(int filingId, std::string period) {
+std::vector<model::FinancialFact> FinancialFactRepository::getAllFilteredByFilingId(int filingId, std::string period) {
     std::vector<db::model::FinancialFact> result;
-    std::string sql;
     // The only difference between annual and quarterly is the way we sort the start_date
-    if (period == "annual") {
-        sql = R"(
-            SELECT tag, start_date, end_date, value, unit, source_tag
-            FROM (
-              SELECT *,
-                     ROW_NUMBER() OVER (
-                         PARTITION BY tag
-                         ORDER BY end_date DESC, start_date ASC
-                     ) AS rn
-              FROM financial_facts
-              WHERE filingId = (?)
-            ) t
-            WHERE rn = 1
-        )";
-    } else {
-        sql = R"(
-            SELECT tag, start_date, end_date, value, unit, source_tag
-            FROM (
-              SELECT *,
-                     ROW_NUMBER() OVER (
-                         PARTITION BY tag
-                         ORDER BY end_date DESC, start_date DESC 
-                     ) AS rn
-              FROM financial_facts
-              WHERE filingId = (?)
-            ) t
-            WHERE rn = 1
-        )";
-    }
-
+    std::string sortOrder = (period == "annual") ? "ASC" : "DESC";
+    std::string sql = R"(
+        SELECT tag, start_date, end_date, value, unit, source_tag
+        FROM (
+            SELECT *,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY tag
+                       ORDER BY end_date DESC, start_date )" +
+                      sortOrder + R"(
+                   ) AS rn
+            FROM financial_facts
+            WHERE filingId = ? 
+        ) t
+        WHERE rn = 1
+    )";
     db_.get() << sql << filingId >> [&](std::string tag, std::string startDate, std::string endDate, double value,
                                         std::string unit, std::string sourceTag) {
         model::FinancialFact fact;
@@ -120,6 +104,57 @@ std::vector<model::FinancialFact> FinancialFactRepository::getFilteredByFilingId
         fact.sourceTag = std::move(sourceTag);
         result.push_back(fact);
     };
+    return result;
+}
+
+std::vector<model::FinancialFact>
+FinancialFactRepository::getFilteredByFilingIdAndFacts(int filingId, std::string period,
+                                                       std::vector<std::string> facts) {
+    std::vector<db::model::FinancialFact> result;
+
+    std::string sortOrder = (period == "annual") ? "ASC" : "DESC";
+    std::string sql = R"(
+        SELECT tag, start_date, end_date, value, unit, source_tag
+        FROM (
+            SELECT *,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY tag
+                       ORDER BY end_date DESC, start_date )" +
+                      sortOrder + R"(
+                   ) AS rn
+            FROM financial_facts
+            WHERE filingId = ? AND tag IN (
+    )";
+    // Inserting ? placholders for the filtering
+    for (size_t i = 0; i < facts.size(); ++i) {
+        sql += (i == 0 ? "?" : ",?");
+    }
+    sql += R"(
+            )
+        ) t
+        WHERE rn = 1
+    )";
+
+    auto stmt = (db_.get() << sql);
+    stmt << filingId;
+
+    for (const auto &fact : facts) {
+        stmt << fact;
+    }
+
+    stmt >> [&](std::string tag, std::string startDate, std::string endDate, double value, std::string unit,
+                std::string sourceTag) {
+        model::FinancialFact fact;
+        fact.filingId = filingId;
+        fact.tag = std::move(tag);
+        fact.startDate = std::move(startDate);
+        fact.endDate = std::move(endDate);
+        fact.value = value;
+        fact.unit = std::move(unit);
+        fact.sourceTag = std::move(sourceTag);
+        result.push_back(std::move(fact));
+    };
+
     return result;
 }
 

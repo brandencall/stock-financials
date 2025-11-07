@@ -19,9 +19,10 @@ class FinancialService {
     FinancialService(db::repository::CompanyRepository companyRepo, db::repository::FilingRepository filingRepo,
                      db::repository::FinancialFactRepository factRepo, db::repository::StockPriceRepository stockRepo);
 
+    std::optional<db::model::CompanyFinancials> getAllByCikAndPeriod(const std::string &cik, const std::string &period,
+                                                                     std::vector<std::string> &facts);
     std::optional<db::model::CompanyFinancials> getByCikAndPeriod(const std::string &cik, const std::string &period,
-                                                                  int limit);
-    std::optional<db::model::CompanyFinancials> getAllByCikAndPeriod(const std::string &cik, const std::string &period);
+                                                                  int limit, std::vector<std::string> &facts);
 
   private:
     db::repository::CompanyRepository companyRepo;
@@ -29,10 +30,11 @@ class FinancialService {
     db::repository::FinancialFactRepository factRepo;
     db::repository::StockPriceRepository stockRepo;
 
-    std::optional<db::model::CompanyFinancials> getCompanyFinancials(const std::string &cik, const std::string &period);
+    std::optional<db::model::CompanyFinancials> getCompanyFinancials(const std::string &cik, const std::string &period,
+                                                                     std::vector<std::string> &facts);
 
     std::vector<db::model::FinancialReport> getFinancialReports(std::vector<db::model::Filing> filings,
-                                                                std::string period);
+                                                                std::string period, std::vector<std::string> &facts);
 
     bool filingIsAmendment(const db::model::Filing &filing);
 
