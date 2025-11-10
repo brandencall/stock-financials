@@ -12,6 +12,7 @@
 #include <map>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace service {
@@ -31,14 +32,20 @@ class FinancialService {
     db::repository::FilingRepository filingRepo;
     db::repository::FinancialFactRepository factRepo;
     db::repository::StockPriceRepository stockRepo;
-    std::unordered_map<std::string, std::string> factMap;
+    std::unordered_map<std::string, std::vector<std::string>> factMap;
 
     std::optional<db::model::CompanyFinancials> getCompanyFinancials(const std::string &cik, const std::string &period,
                                                                      std::vector<std::string> &facts);
 
-    void normalizeFacts(std::vector<std::string> &facts);
+    std::unordered_set<std::string> normalizeFacts(std::vector<std::string> &facts);
     std::vector<db::model::FinancialReport> getFinancialReports(std::vector<db::model::Filing> filings,
-                                                                std::string period, std::vector<std::string> &facts);
+                                                                std::string period,
+                                                                std::vector<std::string> &originalFacts,
+                                                                std::unordered_set<std::string> &normalizedFacts);
+
+    void constructFinancialReportFacts(db::model::FinancialReport &financialReport,
+                                       std::vector<std::string> &originalFacts,
+                                       std::vector<db::model::FinancialFact> &financialFacts);
 
     bool filingIsAmendment(const db::model::Filing &filing);
 
@@ -51,7 +58,9 @@ class FinancialService {
     void
     sortByFilingDate(std::unordered_map<std::string, std::vector<db::model::FinancialReport>> &reportsGroupedByYear);
 
-    void addFactPE(std::vector<db::model::FinancialFact> &facts, db::model::StockPrice &stockPrice);
+    // PE = Price / EPS (diluted)
+    std::optional<db::model::FinancialFact> derivePeFact(const std::vector<db::model::FinancialFact> &facts,
+                                                         std::optional<db::model::StockPrice> &stockPrice);
     std::string getEPSCurrency(std::string &epsUnit);
     // Price to book. book = (total assets - total liabilities - intangible)/ shares
     // intangible is Goodwill and IntangibleAssetsNetExcludingGoodwill.

@@ -13,7 +13,7 @@ namespace db::model {
 struct FinancialReport {
     Filing filing;
     std::vector<FinancialFact> facts;
-    StockPrice stockPrice;
+    std::optional<StockPrice> stockPrice;
 };
 
 inline void to_json(json &j, const FinancialReport &fr) {

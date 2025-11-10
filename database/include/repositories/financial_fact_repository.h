@@ -2,7 +2,7 @@
 #include "../database.h"
 #include "../models/company_record.h"
 #include "../models/financial_fact.h"
-#include <vector>
+#include <unordered_set>
 
 namespace db::repository {
 
@@ -15,7 +15,7 @@ class FinancialFactRepository {
     std::vector<model::FinancialFact> getByFilingId(int filingId);
     std::vector<model::FinancialFact> getAllFilteredByFilingId(int filingId, std::string period);
     std::vector<model::FinancialFact> getFilteredByFilingIdAndFacts(int filingId, std::string period,
-                                                                    std::vector<std::string> facts);
+                                                                    std::unordered_set<std::string> facts);
 
   private:
     db::Database &db_;

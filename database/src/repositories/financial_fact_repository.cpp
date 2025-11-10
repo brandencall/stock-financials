@@ -109,7 +109,7 @@ std::vector<model::FinancialFact> FinancialFactRepository::getAllFilteredByFilin
 
 std::vector<model::FinancialFact>
 FinancialFactRepository::getFilteredByFilingIdAndFacts(int filingId, std::string period,
-                                                       std::vector<std::string> facts) {
+                                                       std::unordered_set<std::string> facts) {
     std::vector<db::model::FinancialFact> result;
 
     std::string sortOrder = (period == "annual") ? "ASC" : "DESC";
