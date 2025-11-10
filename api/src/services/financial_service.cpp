@@ -188,7 +188,7 @@ void FinancialService::addFactPE(std::vector<db::model::FinancialFact> &facts, d
         peFact.filingId = epsFact->filingId;
         peFact.endDate = epsFact->endDate;
         peFact.value = pe;
-        peFact.tag = "PE ratio";
+        peFact.tag = "PE Ratio";
         facts.push_back(peFact);
     }
 }
