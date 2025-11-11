@@ -9,9 +9,11 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     clear();
     printw("Fetching data...");
     refresh();
-    companyData = app.getApiClient().getCompaniesAnnualFinancials(company.cik, 5);
+    companyData = app.getApiClient().getCompaniesFinancials(company.cik, "annual", 5);
+    latestCompanyData = app.getApiClient().getCompaniesFinancials(company.cik, "annual", 1);
 
     mainWin = newwin(0, 0, 0, 0);
+
     headerWin = derwin(mainWin, headerHeight, headerWidth, headerY, headerX);
     revenueBarWin = derwin(mainWin, revenueBarHeight, revenueBarWidth, revenueBarY, revenueBarX);
     operatingIncomeWin =

@@ -22,6 +22,33 @@ CompanyFinancials ApiClient::getCompaniesAnnualFinancials(const std::string &cik
     return j.get<CompanyFinancials>();
 }
 
+CompanyFinancials ApiClient::getCompaniesFinancials(const std::string &cik, const std::string &period, int limit) {
+    return getCompaniesFinancials(cik, period, {}, limit);
+}
+
+CompanyFinancials ApiClient::getCompaniesFinancials(const std::string &cik, const std::string &period,
+                                                    const std::vector<std::string> &facts, int limit) {
+    std::string url = "http://10.0.0.210:8080/companies/" + cik + "/financials?period=" + period +
+                      "&limit=" + std::to_string(limit) + "&facts=";
+    for (const auto &fact : facts) {
+        url += formatSpacesForUrl(fact) + ",";
+    }
+    json j = json::parse(callAPI(url));
+    return j.get<CompanyFinancials>();
+}
+
+std::string ApiClient::formatSpacesForUrl(const std::string &str) {
+    std::string result;
+    for (const auto &c : str) {
+        if (c != ' ') {
+            result += c;
+        } else {
+            result += "%20";
+        }
+    }
+    return result;
+}
+
 std::string ApiClient::callAPI(const std::string &url) {
     std::string response;
 

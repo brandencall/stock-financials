@@ -34,6 +34,7 @@ class CompanyPage : public Page {
     Company company;
     bool refreshNeeded;
     CompanyFinancials companyData;
+    CompanyFinancials latestCompanyData;
 
     int headerHeight = 3;
     int headerWidth = 0;
