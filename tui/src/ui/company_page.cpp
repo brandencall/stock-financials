@@ -146,7 +146,7 @@ void CompanyPage::renderPeBar() {
         FinancialReport report = companyData.reports[i];
         for (int j = 0; j < report.facts.size(); ++j) {
             FinancialFact fact = report.facts[j];
-            if (fact.tag == "PE ratio") {
+            if (fact.tag == "PE Ratio") {
                 double pe = fact.value;
                 double growth = 0;
                 if (i > 0 && pePoints[i - 1].value > 0) {
@@ -221,7 +221,7 @@ CompanyHeaderData CompanyPage::getHeaderData() {
     result.fiscalYear = "FY" + std::to_string(latestReport.filing.fy);
     result.price = latestReport.stockPrice.close;
     for (const auto &fact : latestReport.facts) {
-        if (fact.tag == "PE ratio")
+        if (fact.tag == "PE Ratio")
             result.peRatio = fact.value;
         if (fact.tag == "Dividens Per Share")
             result.dividend = fact.value;
