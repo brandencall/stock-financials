@@ -145,6 +145,7 @@ void FinancialService::constructFinancialReportFacts(db::model::FinancialReport 
         return;
     }
     std::vector<db::model::FinancialFact> resultFacts;
+    std::vector<const db::model::FinancialFact *> selectedFacts;
     for (const auto &oFact : originalFacts) {
         auto it = std::find_if(financialFacts.begin(), financialFacts.end(), [&](const db::model::FinancialFact &ff) {
             std::string tagLower = ff.tag;
@@ -152,14 +153,18 @@ void FinancialService::constructFinancialReportFacts(db::model::FinancialReport 
             return tagLower == oFact;
         });
         if (it != financialFacts.end()) {
-            resultFacts.push_back(std::move(*it));
+            selectedFacts.push_back(&(*it));
         } else if (oFact == "pe ratio") {
             std::optional<db::model::FinancialFact> peFact = derivePeFact(financialFacts, financialReport.stockPrice);
             if (peFact != std::nullopt) {
-                resultFacts.push_back(peFact.value());
+                resultFacts.push_back(std::move(peFact.value()));
             }
         }
     }
+    for (auto f : selectedFacts) {
+        resultFacts.push_back(std::move(*f));
+    }
+
     financialReport.facts = resultFacts;
 }
 
