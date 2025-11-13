@@ -133,3 +133,9 @@ std::string UiUtils::abbreviateNumber(double num) {
 }
 
 int UiUtils::getCenterForString(WINDOW *win, const std::string &str) { return (getmaxx(win) / 2) - (str.size() / 2); }
+
+void UiUtils::renderWindowTitle(WINDOW *win, const std::string &title, int y, int x) {
+    wattron(win, A_BOLD);
+    mvwprintw(win, 0, 1, " %s ", title.c_str());
+    wattroff(win, A_BOLD);
+}

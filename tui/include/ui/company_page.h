@@ -33,6 +33,7 @@ class CompanyPage : public Page {
     Application &app;
     Company company;
     bool refreshNeeded;
+    std::vector<std::string> financialFactList;
     CompanyFinancials companyData;
     CompanyFinancials latestCompanyData;
 
@@ -74,13 +75,15 @@ class CompanyPage : public Page {
     WINDOW *peWin;
     WINDOW *cashToDebtWin;
 
-    void renderTitle();
+    void renderBarGraphs();
+    void renderMainWindowTitle();
+    double calculateGrowthRate(double currentValue, double previousValue);
+    void renderRevenue(const std::vector<DataPoint> &revenuePoints, const std::string &currency);
+    void renderOperatingIncome(const std::vector<DataPoint> &operatingIncomePoints, const std::string &currency);
+    void renderEPS(const std::vector<DataPoint> &epsPoints, const std::string &unit);
+    void renderPe(const std::vector<DataPoint> &pePoints);
     void renderNoDataError();
     void renderHeader();
-    void renderRevenueBar();
-    void renderOperatingIncomeBar();
-    void renderEpsBar();
-    void renderPeBar();
     void renderCashToDebtBar();
     CompanyHeaderData getHeaderData();
 };

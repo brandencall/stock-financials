@@ -9,7 +9,16 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     clear();
     printw("Fetching data...");
     refresh();
-    companyData = app.getApiClient().getCompaniesFinancials(company.cik, "annual", 5);
+    financialFactList = {"Revenue",
+                         "Operating Income",
+                         "Earnings Per Share Diluted",
+                         "PE Ratio",
+                         "Cash And Cash Equivalents",
+                         "Overall Debt",
+                         "Current Debt",
+                         "Long Term Debt"};
+
+    companyData = app.getApiClient().getCompaniesFinancials(company.cik, "annual", financialFactList, 5);
     latestCompanyData = app.getApiClient().getCompaniesFinancials(company.cik, "annual", 1);
 
     mainWin = newwin(0, 0, 0, 0);
@@ -35,7 +44,7 @@ CompanyPage::~CompanyPage() {
 
 void CompanyPage::render() {
     box(mainWin, 1, 0);
-    renderTitle();
+    renderMainWindowTitle();
 
     if (companyData.reports.empty()) {
         renderNoDataError();
@@ -50,125 +59,97 @@ void CompanyPage::render() {
     box(cashToDebtWin, 1, 0);
 
     renderHeader();
-    renderRevenueBar();
-    renderOperatingIncomeBar();
-    renderEpsBar();
-    renderPeBar();
+    renderBarGraphs();
     renderCashToDebtBar();
 
     wrefresh(mainWin);
     wrefresh(headerWin);
-    wrefresh(revenueBarWin);
-    wrefresh(operatingIncomeWin);
-    wrefresh(epsWin);
-    wrefresh(peWin);
-    wrefresh(cashToDebtWin);
 }
 
-void CompanyPage::renderRevenueBar() {
+void CompanyPage::renderBarGraphs() {
     std::vector<DataPoint> revenuePoints;
+    std::vector<DataPoint> operatingIncomePoints;
+    std::vector<DataPoint> epsPoints;
+    std::vector<DataPoint> pePoints;
     std::string currency;
+    std::string epsUnit;
     for (int i = 0; i < companyData.reports.size(); ++i) {
         FinancialReport report = companyData.reports[i];
         for (int j = 0; j < report.facts.size(); ++j) {
             FinancialFact fact = report.facts[j];
+            currency = currency.empty() ? fact.unit : currency;
             if (fact.tag == "Revenue") {
-                currency = currency.empty() ? fact.unit : currency;
-                double revenue = fact.value;
                 double growth = 0;
-                if (i > 0) {
-                    growth = ((revenue - revenuePoints[i - 1].value) / revenuePoints[i - 1].value) * 100.0;
+                if (!revenuePoints.empty()) {
+                    growth = calculateGrowthRate(fact.value, revenuePoints.back().value);
                 }
                 revenuePoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
-            }
-        }
-    }
-    std::string title = "Revenue (" + currency + ")";
-    wattron(revenueBarWin, A_BOLD);
-    mvwprintw(revenueBarWin, 0, 1, " %s ", title.c_str());
-    wattroff(revenueBarWin, A_BOLD);
-    UiUtils::renderHorizontalBarChart(revenueBarWin, revenuePoints, 0.65, 1, 2);
-}
-
-void CompanyPage::renderOperatingIncomeBar() {
-    std::vector<DataPoint> operatingIncomePoints;
-    std::string currency;
-    for (int i = 0; i < companyData.reports.size(); ++i) {
-        FinancialReport report = companyData.reports[i];
-        for (int j = 0; j < report.facts.size(); ++j) {
-            FinancialFact fact = report.facts[j];
-            if (fact.tag == "Operating Income") {
-                currency = currency.empty() ? fact.unit : currency;
-                double operatingIncome = fact.value;
+            } else if (fact.tag == "Operating Income") {
                 double growth = 0;
-                if (i > 0) {
-                    growth = ((operatingIncome - operatingIncomePoints[i - 1].value) /
-                              std::abs(operatingIncomePoints[i - 1].value)) *
-                             100.0;
+                if (!operatingIncomePoints.empty()) {
+                    growth = calculateGrowthRate(fact.value, operatingIncomePoints.back().value);
                 }
                 operatingIncomePoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
-            }
-        }
-    }
-    std::string title = "Operating Income (" + currency + ")";
-    wattron(operatingIncomeWin, A_BOLD);
-    mvwprintw(operatingIncomeWin, 0, 1, " %s ", title.c_str());
-    wattroff(operatingIncomeWin, A_BOLD);
-    UiUtils::renderHorizontalBarChart(operatingIncomeWin, operatingIncomePoints, 0.65, 1, 2);
-}
-
-void CompanyPage::renderEpsBar() {
-    std::vector<DataPoint> epsPoints;
-    std::string currency;
-    for (int i = 0; i < companyData.reports.size(); ++i) {
-        FinancialReport report = companyData.reports[i];
-        for (int j = 0; j < report.facts.size(); ++j) {
-            FinancialFact fact = report.facts[j];
-            if (fact.tag == "Earnings Per Share Diluted") {
-                currency = currency.empty() ? fact.unit : currency;
-                double eps = fact.value;
+            } else if (fact.tag == "Earnings Per Share Diluted") {
                 double growth = 0;
-                if (i > 0) {
-                    growth = ((eps - epsPoints[i - 1].value) / std::abs(epsPoints[i - 1].value)) * 100.0;
+                if (!epsPoints.empty()) {
+                    growth = calculateGrowthRate(fact.value, epsPoints.back().value);
                 }
                 epsPoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
-            }
-        }
-    }
-    std::string title = "EPS Diluted (" + currency + ")";
-    wattron(epsWin, A_BOLD);
-    mvwprintw(epsWin, 0, 1, " %s ", title.c_str());
-    wattroff(epsWin, A_BOLD);
-    UiUtils::renderHorizontalBarChart(epsWin, epsPoints, 0.45, 1, 2);
-}
-
-void CompanyPage::renderPeBar() {
-    std::vector<DataPoint> pePoints;
-    for (int i = 0; i < companyData.reports.size(); ++i) {
-        FinancialReport report = companyData.reports[i];
-        for (int j = 0; j < report.facts.size(); ++j) {
-            FinancialFact fact = report.facts[j];
-            if (fact.tag == "PE Ratio") {
-                double pe = fact.value;
+            } else if (fact.tag == "PE Ratio") {
                 double growth = 0;
-                if (i > 0 && pePoints[i - 1].value > 0) {
-                    growth = ((pe - pePoints[i - 1].value) / pePoints[i - 1].value) * 100.0;
+                if (!pePoints.empty()) {
+                    growth = calculateGrowthRate(fact.value, pePoints.back().value);
                 }
                 pePoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
             }
         }
     }
+    renderRevenue(revenuePoints, currency);
+    renderOperatingIncome(operatingIncomePoints, currency);
+    renderEPS(epsPoints, epsUnit);
+    renderPe(pePoints);
+}
+
+double CompanyPage::calculateGrowthRate(double currentValue, double previousValue) {
+    if (previousValue == 0)
+        return 0.0;
+    return ((currentValue - previousValue) / std::abs(previousValue)) * 100.0;
+}
+
+void CompanyPage::renderRevenue(const std::vector<DataPoint> &revenuePoints, const std::string &currency) {
+    std::string title = "Revenue (" + currency + ")";
+    UiUtils::renderWindowTitle(revenueBarWin, title, 0, 1);
+    UiUtils::renderHorizontalBarChart(revenueBarWin, revenuePoints, 0.65, 1, 2);
+    wrefresh(revenueBarWin);
+}
+
+void CompanyPage::renderOperatingIncome(const std::vector<DataPoint> &operatingIncomePoints,
+                                        const std::string &currency) {
+    std::string title = "Operating Income (" + currency + ")";
+    UiUtils::renderWindowTitle(operatingIncomeWin, title, 0, 1);
+    UiUtils::renderHorizontalBarChart(operatingIncomeWin, operatingIncomePoints, 0.65, 1, 2);
+    wrefresh(operatingIncomeWin);
+}
+void CompanyPage::renderEPS(const std::vector<DataPoint> &epsPoints, const std::string &unit) {
+    std::string title = "EPS (" + unit + ")";
+    UiUtils::renderWindowTitle(epsWin, title, 0, 1);
+    UiUtils::renderHorizontalBarChart(epsWin, epsPoints, 0.45, 1, 2);
+    wrefresh(epsWin);
+}
+void CompanyPage::renderPe(const std::vector<DataPoint> &pePoints) {
     std::string title = "PE Ratio";
-    wattron(peWin, A_BOLD);
-    mvwprintw(peWin, 0, 1, " %s ", title.c_str());
-    wattroff(peWin, A_BOLD);
+    UiUtils::renderWindowTitle(peWin, title, 0, 1);
     UiUtils::renderHorizontalBarChart(peWin, pePoints, 0.45, 1, 2);
+    wrefresh(peWin);
 }
 
 void CompanyPage::renderCashToDebtBar() {
     double cash = 0;
     double debt = 0;
-    FinancialReport lastReport = companyData.reports[companyData.reports.size() - 1];
+    if (latestCompanyData.reports.empty())
+        return;
+    FinancialReport lastReport = latestCompanyData.reports[0];
     for (const auto &fact : lastReport.facts) {
         if (fact.tag == "Cash And Cash Equivalents") {
             cash = fact.value;
@@ -185,18 +166,16 @@ void CompanyPage::renderCashToDebtBar() {
             }
         }
     }
+
     std::string title = "Cash To Debt";
-    wattron(cashToDebtWin, A_BOLD);
-    mvwprintw(cashToDebtWin, 0, 1, " %s ", title.c_str());
-    wattroff(cashToDebtWin, A_BOLD);
+    UiUtils::renderWindowTitle(cashToDebtWin, title, 0, 1);
     UiUtils::renderCashBalanceBar(cashToDebtWin, cash, debt, 2, 1);
+    wrefresh(cashToDebtWin);
 }
 
-void CompanyPage::renderTitle() {
-    std::string title = company.title + " (" + company.ticker + ")";
-    wattron(mainWin, A_BOLD);
-    mvwprintw(mainWin, 0, UiUtils::getCenterForString(mainWin, title), " %s ", title.c_str());
-    wattroff(mainWin, A_BOLD);
+void CompanyPage::renderMainWindowTitle() {
+    std::string title = " " + company.title + " (" + company.ticker + ") ";
+    UiUtils::renderWindowTitle(mainWin, title, 0, UiUtils::getCenterForString(mainWin, title));
 }
 
 void CompanyPage::renderNoDataError() {
