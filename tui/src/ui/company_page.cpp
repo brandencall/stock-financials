@@ -92,6 +92,7 @@ void CompanyPage::renderBarGraphs() {
                 operatingIncomePoints.emplace_back(std::to_string(report.filing.fy), fact.value, growth);
             } else if (fact.tag == "Earnings Per Share Diluted") {
                 double growth = 0;
+                epsUnit = epsUnit.empty() ? fact.unit : epsUnit;
                 if (!epsPoints.empty()) {
                     growth = calculateGrowthRate(fact.value, epsPoints.back().value);
                 }
