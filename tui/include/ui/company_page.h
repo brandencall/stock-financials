@@ -26,7 +26,6 @@ class CompanyPage : public Page {
     explicit CompanyPage(Application &app, const Company &company);
     ~CompanyPage();
     void render() override;
-    void handleInput(int ch) override;
     bool needsRefresh() const override;
 
   private:

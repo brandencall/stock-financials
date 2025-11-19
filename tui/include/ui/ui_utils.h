@@ -20,7 +20,7 @@ class UiUtils {
     static void renderCashBalanceBar(WINDOW *win, double cash, double debt, int startY, int startX);
     static std::string abbreviateNumber(double num);
     static int getCenterForString(WINDOW *win, const std::string &str);
-    static void renderWindowTitle(WINDOW *win, const std::string &title, int y, int x);
+    static void renderWindowTitle(WINDOW *win, const std::string &title, int x);
 
   private:
     static int getZeroPosition(int startX, int totalWidth, double minValue, double maxValue);
