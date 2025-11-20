@@ -66,6 +66,11 @@ class CompanyPage : public Page {
     int cashToDebtY = 12;
     int cashToDebtX = (COLS / 2) + 1;
 
+    int latestFinancialsHeight = 10;
+    int latestFinancialsWidth = COLS - 1;
+    int latestFinancialsY = 19;
+    int latestFinancialsX = 1;
+
     WINDOW *mainWin;
     WINDOW *headerWin;
     WINDOW *revenueBarWin;
@@ -73,6 +78,7 @@ class CompanyPage : public Page {
     WINDOW *epsWin;
     WINDOW *peWin;
     WINDOW *cashToDebtWin;
+    WINDOW *latestFinancialsWin;
 
     void renderBarGraphs();
     void renderMainWindowTitle();
@@ -84,5 +90,7 @@ class CompanyPage : public Page {
     void renderNoDataError();
     void renderHeader();
     void renderCashToDebtBar();
+    void renderFinancialsWin();
+    void renderFinancialFact(const FinancialFact &fact, int &rowCount, int &colCount);
     CompanyHeaderData getHeaderData();
 };

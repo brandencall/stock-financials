@@ -30,6 +30,8 @@ CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), c
     epsWin = derwin(mainWin, epsHeight, epsWidth, epsY, epsX);
     peWin = derwin(mainWin, peHeight, peWidth, peY, peX);
     cashToDebtWin = derwin(mainWin, cashToDebtHeight, cashToDebtWidth, cashToDebtY, cashToDebtX);
+    latestFinancialsWin =
+        derwin(mainWin, latestFinancialsHeight, latestFinancialsWidth, latestFinancialsY, latestFinancialsX);
 }
 
 CompanyPage::~CompanyPage() {
@@ -40,6 +42,7 @@ CompanyPage::~CompanyPage() {
     delwin(epsWin);
     delwin(peWin);
     delwin(cashToDebtWin);
+    delwin(latestFinancialsWin);
 }
 
 void CompanyPage::render() {
@@ -57,10 +60,12 @@ void CompanyPage::render() {
     box(epsWin, 1, 0);
     box(peWin, 1, 0);
     box(cashToDebtWin, 1, 0);
+    box(latestFinancialsWin, 0, 0);
 
     renderHeader();
     renderBarGraphs();
     renderCashToDebtBar();
+    renderFinancialsWin();
 
     wrefresh(mainWin);
     wrefresh(headerWin);
@@ -198,7 +203,10 @@ void CompanyPage::renderHeader() {
 
 CompanyHeaderData CompanyPage::getHeaderData() {
     CompanyHeaderData result;
-    FinancialReport latestReport = companyData.reports[companyData.reports.size() - 1];
+    if (latestCompanyData.reports.empty()) {
+        return result;
+    }
+    FinancialReport latestReport = latestCompanyData.reports[0];
     result.fiscalYear = "FY" + std::to_string(latestReport.filing.fy);
     result.price = latestReport.stockPrice.close;
     for (const auto &fact : latestReport.facts) {
@@ -212,5 +220,43 @@ CompanyHeaderData CompanyPage::getHeaderData() {
     }
     return result;
 };
+
+void CompanyPage::renderFinancialsWin() {
+    if (latestCompanyData.reports.empty()) {
+        return;
+    }
+    FinancialReport latestReport = latestCompanyData.reports[0];
+    std::string title = " FY" + std::to_string(latestReport.filing.fy) + " (Latest Annual Report) ";
+    UiUtils::renderWindowTitle(latestFinancialsWin, title, 1);
+    int rowCount = 1;
+    int colCount = 2;
+    for (const auto &fact : latestReport.facts) {
+        renderFinancialFact(fact, rowCount, colCount);
+    }
+    mvwaddch(latestFinancialsWin, rowCount, colCount - 2, ' ');
+    wrefresh(latestFinancialsWin);
+}
+
+void CompanyPage::renderFinancialFact(const FinancialFact &fact, int &rowCount, int &colCount) {
+
+    std::string fStr;
+    if (fact.unit.find("shares") != std::string::npos || fact.unit.empty()) {
+        fStr = std::format(": {:s} | ", UiUtils::abbreviateNumber(fact.value));
+    } else {
+        fStr = std::format(": ${:s} | ", UiUtils::abbreviateNumber(fact.value));
+    }
+
+    if ((int)(colCount + fact.tag.size() + fStr.size() + 2) >= getmaxx(latestFinancialsWin)) {
+        rowCount += 2;
+        colCount = 2;
+    }
+    wattron(latestFinancialsWin, A_BOLD);
+    mvwprintw(latestFinancialsWin, rowCount, colCount, "%s", fact.tag.c_str());
+    wattroff(latestFinancialsWin, A_BOLD);
+    colCount += fact.tag.size();
+
+    mvwprintw(latestFinancialsWin, rowCount, colCount, "%s", fStr.c_str());
+    colCount += fStr.size();
+}
 
 bool CompanyPage::needsRefresh() const { return refreshNeeded; }
