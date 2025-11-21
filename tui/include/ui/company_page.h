@@ -2,6 +2,7 @@
 
 #include "../models.h"
 #include "page.h"
+#include "filings_page.h"
 #include "ui_utils.h"
 #include <algorithm>
 #include <format>
@@ -26,12 +27,11 @@ class CompanyPage : public Page {
     explicit CompanyPage(Application &app, const Company &company);
     ~CompanyPage();
     void render() override;
-    bool needsRefresh() const override;
+    void handleInput(int ch) override;
 
   private:
     Application &app;
     Company company;
-    bool refreshNeeded;
     std::vector<std::string> financialFactList;
     CompanyFinancials companyData;
     CompanyFinancials latestCompanyData;

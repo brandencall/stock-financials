@@ -4,8 +4,9 @@
 #include "ui/ui_utils.h"
 #include <format>
 #include <ncurses.h>
+#include <rapidfuzz/details/common.hpp>
 
-CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), company(company), refreshNeeded(false) {
+CompanyPage::CompanyPage(Application &app, const Company &company) : app(app), company(company) {
     clear();
     printw("Fetching data...");
     refresh();
@@ -69,6 +70,7 @@ void CompanyPage::render() {
 
     wrefresh(mainWin);
     wrefresh(headerWin);
+    refreshNeeded = false;
 }
 
 void CompanyPage::renderBarGraphs() {
@@ -259,4 +261,11 @@ void CompanyPage::renderFinancialFact(const FinancialFact &fact, int &rowCount, 
     colCount += fStr.size();
 }
 
-bool CompanyPage::needsRefresh() const { return refreshNeeded; }
+void CompanyPage::handleInput(int ch) {
+    switch (ch) {
+    case 10: // Enter
+        //app.switchPage(std::make_unique<FilingsPage>(app, company));
+        break;
+    }
+}
+

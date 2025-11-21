@@ -20,6 +20,7 @@ class Application {
     ApiClient &getApiClient() { return apiClient; }
     const std::vector<Company> &getCompanies();
     void switchToCompanyPage(const Company &company);
+    void switchPage(std::unique_ptr<Page> page);
 
   private:
     ApiClient &apiClient;

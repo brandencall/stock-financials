@@ -7,7 +7,7 @@
 #include <rapidfuzz/fuzz.hpp>
 #include <vector>
 
-SearchPage::SearchPage(Application &app) : app(app), refreshNeeded(true), companyListSize(LINES - 2) {
+SearchPage::SearchPage(Application &app) : app(app), companyListSize(LINES - 2) {
     clear();
     printw("Getting companies...");
     refresh();

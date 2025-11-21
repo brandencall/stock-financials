@@ -20,7 +20,6 @@ class SearchPage : public Page {
     Application &app;
     std::string query;
     std::vector<Company> companies;
-    bool refreshNeeded;
     int companyListSize;
 
     int selectedIndex = 0;
