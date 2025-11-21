@@ -263,9 +263,8 @@ void CompanyPage::renderFinancialFact(const FinancialFact &fact, int &rowCount, 
 
 void CompanyPage::handleInput(int ch) {
     switch (ch) {
-    case 10: // Enter
-        //app.switchPage(std::make_unique<FilingsPage>(app, company));
+    case 'f': // Enter
+        app.switchPage(std::make_unique<FilingsPage>(app, company));
         break;
     }
 }
-

@@ -2,6 +2,7 @@
 #include "application.h"
 #include <algorithm>
 #include <cctype>
+#include <memory>
 #include <ncurses.h>
 #include <queue>
 #include <rapidfuzz/fuzz.hpp>
@@ -12,6 +13,8 @@ SearchPage::SearchPage(Application &app) : app(app), companyListSize(LINES - 2) 
     printw("Getting companies...");
     refresh();
     companies = app.getCompanies();
+    // Need to clear the loading statement
+    clear();
 }
 
 void SearchPage::render() {
@@ -47,7 +50,7 @@ void SearchPage::handleInput(int ch) {
         }
         break;
     case 10: // Enter
-        app.switchToCompanyPage(selectedCompany);
+        app.switchPage(std::make_unique<CompanyPage>(app, selectedCompany));
         break;
     case KEY_BACKSPACE:
     case 127:

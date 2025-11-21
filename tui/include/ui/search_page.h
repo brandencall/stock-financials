@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../models.h"
+#include "company_page.h"
 #include "page.h"
 #include <ncurses.h>
 #include <rapidfuzz/fuzz.hpp>

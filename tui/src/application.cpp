@@ -11,7 +11,7 @@ void Application::initUi() {
     noecho();             // Don't echo typed characters
     keypad(stdscr, TRUE); // Enable arrow keys
 
-    switchToSearchPage();
+    switchPage(std::make_unique<SearchPage>(*this));
 }
 
 void Application::run() {
@@ -22,34 +22,23 @@ void Application::run() {
         currentPage->handleInput(ch);
 
         if (ch == '/') {
-            switchToSearchPage();
+            switchPage(std::make_unique<SearchPage>(*this));
         }
 
         if (currentPage->refreshNeeded) {
             clear();
             currentPage->render();
-        } 
+        }
     }
 }
 
 void Application::shutdownUi() { endwin(); }
 
-void Application::switchToSearchPage() { 
-    currentPage = std::make_unique<SearchPage>(*this);
+void Application::switchPage(std::unique_ptr<Page> page) {
+    currentPage = std::move(page);
     currentPage->refreshNeeded = true;
-    clear();
     currentPage->render();
 }
-
-// TODO: figure out why clear() doesn't work here
-void Application::switchToCompanyPage(const Company &selectedCompany) {
-    currentPage = std::make_unique<CompanyPage>(*this, selectedCompany);
-    currentPage->refreshNeeded = true;
-    //clear();
-    currentPage->render();
-}
-
-void Application::switchPage(std::unique_ptr<Page> page) { currentPage = std::move(page); }
 
 const std::vector<Company> &Application::getCompanies() {
     if (!companiesLoaded) {
