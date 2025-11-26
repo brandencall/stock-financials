@@ -26,4 +26,5 @@ class Server {
     service::CompanyService companyService;
     controller::CompanyController companyController;
     service::FinancialService financialService;
+    service::FilingService filingService;
 };

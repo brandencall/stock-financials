@@ -1,13 +1,13 @@
 #include "controllers/company_controller.h"
 #include "models/company_financials.h"
+#include "services/filing_service.h"
 #include <sstream>
-#include <stdexcept>
 
 namespace controller {
 
 CompanyController::CompanyController(service::CompanyService &companyService,
-                                     service::FinancialService &financialService)
-    : companyService(companyService), financialService(financialService) {}
+                                     service::FinancialService &financialService, service::FilingService &filingService)
+    : companyService(companyService), financialService(financialService), filingService(filingService) {}
 
 void CompanyController::registerRoutes(httplib::Server &server) {
     server.Get("/companies",
@@ -18,6 +18,9 @@ void CompanyController::registerRoutes(httplib::Server &server) {
 
     server.Get(R"(/companies/(\d+)/financials)",
                [this](const httplib::Request &req, httplib::Response &res) { this->getFinancials(req, res); });
+
+    server.Get(R"(/companies/(\d+)/filings)",
+               [this](const httplib::Request &req, httplib::Response &res) { this->getFilings(req, res); });
 }
 
 void CompanyController::getCompanies(const httplib::Request &, httplib::Response &res) {
@@ -73,6 +76,21 @@ void CompanyController::getFinancials(const httplib::Request &req, httplib::Resp
 
     json j = *companyFinancials;
     res.status = 200;
+    res.set_content(j.dump(), "application/json");
+}
+
+// TODO: Could implment annual and quarterly filtering for filings
+void CompanyController::getFilings(const httplib::Request &req, httplib::Response &res) {
+    if (req.matches.size() <= 1) {
+        return sendError(res, 404, "Missing cik parameter");
+    }
+    std::string cik = req.matches[1];
+    auto filings = filingService.getAllFilings(cik);
+    json j = json::array();
+    for (auto &f : filings) {
+        json jsonFiling = f;
+        j.push_back(jsonFiling);
+    }
     res.set_content(j.dump(), "application/json");
 }
 

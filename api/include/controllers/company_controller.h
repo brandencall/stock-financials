@@ -1,5 +1,6 @@
 #pragma once
 #include "../services/company_service.h"
+#include "../services/filing_service.h"
 #include "../services/financial_service.h"
 #include "models/company.h"
 #include <httplib.h>
@@ -13,17 +14,20 @@ namespace controller {
 class CompanyController {
 
   public:
-    explicit CompanyController(service::CompanyService &companyService, service::FinancialService &financialService);
+    explicit CompanyController(service::CompanyService &companyService, service::FinancialService &financialService,
+                               service::FilingService &filingService);
 
     void registerRoutes(httplib::Server &server);
 
   private:
     service::CompanyService &companyService;
     service::FinancialService &financialService;
+    service::FilingService &filingService;
 
     void getCompanies(const httplib::Request &, httplib::Response &res);
     void getCompany(const httplib::Request &req, httplib::Response &res);
     void getFinancials(const httplib::Request &req, httplib::Response &res);
+    void getFilings(const httplib::Request &req, httplib::Response &res);
     void sendError(httplib::Response &res, int status, const std::string &message);
     std::optional<int> parseLimit(const httplib::Request &req);
     std::vector<std::string> parseFacts(const httplib::Request &req);
