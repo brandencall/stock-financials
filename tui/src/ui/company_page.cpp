@@ -210,7 +210,7 @@ CompanyHeaderData CompanyPage::getHeaderData() {
     }
     FinancialReport latestReport = latestCompanyData.reports[0];
     result.fiscalYear = "FY" + std::to_string(latestReport.filing.fy);
-    result.price = latestReport.stockPrice.close;
+    result.price = latestReport.stockPrice.has_value() ? latestReport.stockPrice->close : 0.0;
     for (const auto &fact : latestReport.facts) {
         if (fact.tag == "PE Ratio")
             result.peRatio = fact.value;

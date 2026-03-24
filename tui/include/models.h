@@ -3,6 +3,7 @@
 #include "nlohmann/json.hpp"
 #include <algorithm>
 #include <cctype>
+#include <optional>
 #include <string>
 
 using json = nlohmann::json;
@@ -74,13 +75,17 @@ inline void from_json(const nlohmann::json &j, FinancialFact &ff) {
 struct FinancialReport {
     Filing filing;
     std::vector<FinancialFact> facts;
-    StockPrice stockPrice;
+    std::optional<StockPrice> stockPrice;
 };
 
 inline void from_json(const nlohmann::json &j, FinancialReport &fr) {
     j.at("filing").get_to(fr.filing);
     j.at("facts").get_to(fr.facts);
-    j.at("stockPrice").get_to(fr.stockPrice);
+    if (j.contains("stockPrice") && !j.at("stockPrice").is_null()) {
+        fr.stockPrice = j.at("stockPrice").get<StockPrice>();
+    } else {
+        fr.stockPrice = std::nullopt;
+    }
 }
 
 struct CompanyFinancials {
@@ -92,4 +97,3 @@ inline void from_json(const nlohmann::json &j, CompanyFinancials &cf) {
     j.at("company").get_to(cf.company);
     j.at("reports").get_to(cf.reports);
 }
-
